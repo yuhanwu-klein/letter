@@ -91,18 +91,19 @@ Gentle, realistic ocean motion using optimized Gerstner waves:
 - **Multi-directional Flow** - Multiple wave directions create complex, natural ocean behavior
 
 ### Advanced Underwater Lighting and Materials
-Photorealistic underwater rendering with procedural shader techniques:
+Photorealistic underwater rendering with Unity shader-inspired techniques:
+- **Refraction Distortion** - Normal maps distort caustics and background for realistic light refraction (refractionStrength: 0.05)
 - **Soft Ambient Lighting** - Gentle sunlight from above with 60% ambient term for smooth underwater atmosphere
 - **Multi-Octave Normal Maps** - 4-octave procedural noise creates realistic ocean surface texture
 - **Realistic Ocean Colors** - Tropical blue-green palette: Shallow (0.1, 0.65, 0.75) → Base (0.02, 0.52, 0.65) → Deep (0.0, 0.12, 0.32)
 - **Multi-Layer Color Blending** - Smooth depth gradients with wave height variation for natural appearance
-- **Organic Caustics Pattern** - Voronoi-like flowing caustics with fine detail for realistic underwater light
+- **Organic Caustics Pattern** - Voronoi-like flowing caustics with refraction distortion for realistic underwater light
 - **Smooth Transparency** - Water opacity varies 35-65% based on Fresnel, depth, and distance
 - **Soft Specular Highlights** - Gentle sun reflections (20-80 power range) for smooth ocean surface
 - **Schlick's Fresnel** - Physically-accurate transparency based on viewing angle
 - **Enhanced Subsurface Scattering** - Tropical ocean light penetration (cyan-tinted) for realistic glow
 - **Smooth Fog Transitions** - Gradual atmospheric depth fading to deep ocean blue (20-55 unit range)
-- **Natural Color Variation** - Multi-octave noise adds subtle, realistic color variation to water
+- **Refracted Color Variation** - Multi-octave noise with refraction distortion adds realistic color variation
 - **Blended Normal Maps** - 70% wave normals + 30% procedural for smooth realistic surface
 - **God Rays** - Volumetric sun rays penetrating water surface in background
 - **Depth-Modulated Effects** - Caustics and transparency smoothly vary with depth for realism

@@ -330,6 +330,10 @@ class WaterSimulation {
                 // Blend procedural normal with wave normal for smooth realistic surface
                 vec3 blendedNormal = normalize(v_normal * 0.7 + proceduralNormal * 0.3);
 
+                // ✅ Refraction distortion (matching Unity shader)
+                // Use normal map to distort UV coordinates for caustics and reflections
+                vec2 refractionOffset = proceduralNormal.xz * refractionStrength;
+
                 // Lighting setup - sunlight from above penetrating water
                 vec3 lightDir = normalize(vec3(0.3, 1.0, 0.2));
                 vec3 viewDir = normalize(u_cameraPos - v_position);
@@ -339,7 +343,7 @@ class WaterSimulation {
                 float F0 = 0.02;
                 float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(dot(viewDir, blendedNormal), 0.0), 5.0);
 
-                // ✅ Smooth depth-based color gradient for realistic ocean
+                // ✅ Smooth depth-based color gradient (matching Unity shader lerp)
                 float depth = clamp(v_position.y / depthFade, 0.0, 1.0);
                 depth = smoothstep(0.0, 1.0, depth); // Smooth transition
 
@@ -355,8 +359,8 @@ class WaterSimulation {
                 float NdotL = max(dot(blendedNormal, lightDir), 0.0);
                 float diffuse = NdotL * 0.4 + 0.6; // Higher ambient for smooth look
 
-                // ✅ Realistic ocean caustics
-                vec2 causticsUV = v_position.xz * 0.12;
+                // ✅ Realistic ocean caustics with refraction distortion
+                vec2 causticsUV = v_position.xz * 0.12 + refractionOffset;
                 float caustics = proceduralCaustics(causticsUV, time);
 
                 // Modulate caustics by lighting and depth
@@ -384,7 +388,7 @@ class WaterSimulation {
                 // Add subtle specular highlights
                 waterColor += specular;
 
-                // Soft sky reflection from underwater
+                // ✅ Soft sky reflection with refraction distortion
                 vec3 skyReflection = mix(skyHorizon, skyTop, 0.4);
                 waterColor = mix(waterColor, skyReflection, fresnel * 0.12);
 
@@ -394,8 +398,9 @@ class WaterSimulation {
                 vec3 fogColor = vec3(0.01, 0.18, 0.35); // Deep ocean blue
                 waterColor = mix(waterColor, fogColor, fog * 0.6);
 
-                // Add very subtle natural color variation
-                float colorNoise = oceanNoise(v_position.xz * 0.3, time * 0.1) * 0.015;
+                // ✅ Add natural color variation with refraction
+                vec2 noiseUV = v_position.xz * 0.3 + refractionOffset * 2.0;
+                float colorNoise = oceanNoise(noiseUV, time * 0.1) * 0.015;
                 waterColor += vec3(colorNoise * 0.8, colorNoise, colorNoise * 1.2);
 
                 // Ensure smooth realistic brightness
