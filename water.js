@@ -34,9 +34,9 @@ class WaterSimulation {
     }
 
     initMatrices() {
-        // Camera setup - positioned for optimal ocean view
-        this.cameraPos = [0, 4, 10];
-        this.cameraTarget = [0, 0, -15];
+        // Camera setup - positioned underwater looking up at surface
+        this.cameraPos = [0, -5, 0];
+        this.cameraTarget = [0, 2, -8];
         this.cameraUp = [0, 1, 0];
 
         this.updateProjectionMatrix();
@@ -221,16 +221,16 @@ class WaterSimulation {
             vec3 skyTop = vec3(0.4, 0.6, 0.95);
             vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
 
-            // Realistic ocean water colors
-            vec3 deepOcean = vec3(0.0, 0.15, 0.35);
-            vec3 shallowOcean = vec3(0.0, 0.4, 0.6);
-            vec3 waterBlue = vec3(0.02, 0.5, 0.7);
-            vec3 foam = vec3(0.85, 0.95, 1.0);
+            // Underwater water colors - more transparent and lighter
+            vec3 deepOcean = vec3(0.05, 0.25, 0.45);
+            vec3 shallowOcean = vec3(0.1, 0.45, 0.65);
+            vec3 waterBlue = vec3(0.08, 0.55, 0.75);
+            vec3 foam = vec3(0.7, 0.9, 1.0);
             vec3 sunColor = vec3(1.0, 0.95, 0.8);
 
             void main() {
-                // Lighting setup
-                vec3 lightDir = normalize(vec3(0.6, 0.85, 0.4));
+                // Lighting setup - light comes from above (sun penetrating water surface)
+                vec3 lightDir = normalize(vec3(0.2, 1.0, 0.3));
                 vec3 viewDir = normalize(u_cameraPos - v_position);
                 vec3 halfDir = normalize(lightDir + viewDir);
 
@@ -238,36 +238,33 @@ class WaterSimulation {
                 float F0 = 0.02; // Water's base reflectance
                 float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(dot(viewDir, v_normal), 0.0), 5.0);
 
-                // Diffuse lighting with ambient term
+                // Diffuse lighting with more ambient for underwater atmosphere
                 float NdotL = max(dot(v_normal, lightDir), 0.0);
-                float diffuse = NdotL * 0.7 + 0.3; // Add ambient
+                float diffuse = NdotL * 0.5 + 0.5; // Higher ambient for underwater
 
-                // Improved specular highlights (Blinn-Phong)
+                // Reduced specular highlights for underwater view
                 float NdotH = max(dot(v_normal, halfDir), 0.0);
-                float specularPower = mix(32.0, 128.0, fresnel); // Sharper at grazing angles
+                float specularPower = mix(16.0, 64.0, fresnel); // Softer highlights underwater
                 float spec = pow(NdotH, specularPower);
 
-                // Enhanced specular with sun color
-                vec3 specular = spec * sunColor * 1.2;
+                // Softer specular with sun color for underwater
+                vec3 specular = spec * sunColor * 0.4;
 
-                // Depth-based water color
-                float depth = max(-v_position.y, 0.0);
-                vec3 waterColor = mix(shallowOcean, deepOcean, smoothstep(0.0, 2.0, depth));
+                // Depth-based water color - inverted for underwater view
+                float depth = max(v_position.y, 0.0);
+                vec3 waterColor = mix(waterBlue, shallowOcean, smoothstep(0.0, 3.0, depth));
 
                 // Add variation based on wave height for more realism
-                waterColor = mix(waterColor, waterBlue, v_waveHeight * 1.5 + 0.5);
+                waterColor = mix(waterColor, deepOcean, v_waveHeight * 0.8 + 0.3);
 
-                // Subsurface scattering approximation
-                float backLight = max(dot(-viewDir, lightDir), 0.0);
-                vec3 subsurface = vec3(0.1, 0.3, 0.4) * pow(backLight, 3.0) * 0.5;
+                // Enhanced subsurface scattering for underwater - light penetrating from above
+                float scatterLight = max(dot(v_normal, lightDir), 0.0);
+                vec3 subsurface = vec3(0.15, 0.4, 0.5) * pow(scatterLight, 2.0) * 0.6;
 
-                // Enhanced foam on wave peaks and slopes
+                // Minimal foam from underwater perspective
                 float foamAmount = 0.0;
-                if (v_waveHeight > 0.2) {
-                    foamAmount = smoothstep(0.2, 0.5, v_waveHeight);
-                    // Add foam on steep slopes too
-                    float steepness = 1.0 - abs(dot(v_normal, vec3(0.0, 1.0, 0.0)));
-                    foamAmount += smoothstep(0.6, 0.9, steepness) * 0.3;
+                if (v_waveHeight > 0.4) {
+                    foamAmount = smoothstep(0.4, 0.7, v_waveHeight) * 0.2;
                     foamAmount = clamp(foamAmount, 0.0, 1.0);
                 }
 
@@ -283,15 +280,15 @@ class WaterSimulation {
                 // Add specular highlights
                 waterColor += specular;
 
-                // Mix with sky reflection based on Fresnel
+                // Reduced sky reflection from underwater
                 vec3 skyReflection = mix(skyHorizon, skyTop, 0.3);
-                waterColor = mix(waterColor, skyReflection, fresnel * 0.4);
+                waterColor = mix(waterColor, skyReflection, fresnel * 0.15);
 
-                // Atmospheric scattering and distance fog
+                // Underwater fog/murk - distance fades to deep blue-green
                 float dist = length(v_position.xz);
-                float fog = smoothstep(25.0, 60.0, dist);
-                vec3 fogColor = mix(skyHorizon, vec3(0.6, 0.75, 0.9), 0.5);
-                waterColor = mix(waterColor, fogColor, fog);
+                float fog = smoothstep(15.0, 50.0, dist);
+                vec3 fogColor = vec3(0.02, 0.15, 0.3); // Deep underwater color
+                waterColor = mix(waterColor, fogColor, fog * 0.7);
 
                 // Add slight color variation for realism
                 float colorNoise = sin(v_position.x * 0.1) * cos(v_position.z * 0.1) * 0.02;
@@ -300,7 +297,15 @@ class WaterSimulation {
                 // Ensure realistic brightness
                 waterColor = clamp(waterColor, 0.0, 1.0);
 
-                gl_FragColor = vec4(waterColor, 1.0);
+                // Calculate transparency based on viewing angle and depth
+                // More transparent when looking straight at surface, more opaque at grazing angles
+                float transparency = mix(0.3, 0.7, fresnel);
+
+                // Adjust transparency based on distance for depth effect
+                float distFactor = smoothstep(0.0, 30.0, dist);
+                transparency = mix(transparency, 0.5, distFactor);
+
+                gl_FragColor = vec4(waterColor, transparency);
             }
         `;
 
@@ -320,20 +325,34 @@ class WaterSimulation {
             uniform float u_time;
 
             void main() {
-                vec3 skyTop = vec3(0.4, 0.6, 0.95);
-                vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
+                // Underwater ambient colors - darker blues/greens
+                vec3 deepWater = vec3(0.0, 0.1, 0.2);
+                vec3 lightWater = vec3(0.1, 0.3, 0.5);
 
                 float gradient = v_uv.y;
-                vec3 skyColor = mix(skyHorizon, skyTop, gradient);
+                vec3 skyColor = mix(deepWater, lightWater, gradient * 0.7);
 
-                // Add subtle clouds
-                float clouds = sin(v_uv.x * 8.0 + u_time * 0.1) * sin(v_uv.y * 12.0 + u_time * 0.15);
-                clouds = clouds * 0.05 + 0.05;
-                skyColor += vec3(clouds);
+                // Add animated caustics effect (light patterns from water surface)
+                float caustics1 = sin(v_uv.x * 15.0 + u_time * 0.3) * sin(v_uv.y * 12.0 - u_time * 0.25);
+                float caustics2 = sin(v_uv.x * 12.0 - u_time * 0.2) * cos(v_uv.y * 15.0 + u_time * 0.35);
+                float caustics = (caustics1 + caustics2) * 0.5;
+                caustics = smoothstep(-0.3, 0.8, caustics) * 0.15;
+                skyColor += vec3(caustics * 0.8, caustics, caustics * 1.2);
 
-                // Sun glow near horizon
-                float sunGlow = smoothstep(0.3, 0.0, length(v_uv - vec2(0.5, 0.3)));
-                skyColor += vec3(sunGlow * 0.2, sunGlow * 0.15, sunGlow * 0.05);
+                // Sun rays from surface (god rays effect)
+                vec2 sunPos = vec2(0.5, 0.7);
+                vec2 toSun = v_uv - sunPos;
+                float rayAngle = atan(toSun.y, toSun.x);
+                float rayDist = length(toSun);
+
+                float rays = sin(rayAngle * 12.0 + u_time * 0.1) * 0.5 + 0.5;
+                rays *= smoothstep(0.8, 0.0, rayDist);
+                rays *= smoothstep(0.0, 0.2, rayDist);
+                skyColor += vec3(rays * 0.3, rays * 0.4, rays * 0.5);
+
+                // Bright area where sun penetrates water surface
+                float sunGlow = smoothstep(0.4, 0.0, length(v_uv - sunPos));
+                skyColor += vec3(sunGlow * 0.3, sunGlow * 0.4, sunGlow * 0.5);
 
                 gl_FragColor = vec4(skyColor, 1.0);
             }
@@ -514,6 +533,11 @@ class WaterSimulation {
 
     renderWater() {
         this.gl.enable(this.gl.DEPTH_TEST);
+
+        // Enable blending for water transparency
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
         this.gl.useProgram(this.waterProgram);
 
         // Bind vertex buffer

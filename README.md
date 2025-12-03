@@ -1,17 +1,20 @@
-# 🌊 Ocean Hand Tracker - Interactive Water Ripples
+# 🌊 Underwater Hand Tracker - Interactive Water Ripples
 
-A mesmerizing, minimalist web-based hand tracking application that combines MediaPipe Hands with realistic WebGL water simulation. Experience a pure, immersive ocean view where your hand movements create beautiful ripples across the water!
+A mesmerizing, minimalist web-based hand tracking application that combines MediaPipe Hands with realistic WebGL underwater simulation. Experience an immersive underwater view looking up at the water surface, where your hand movements create beautiful ripples through the transparent water!
 
 ## Features
 
-- **🎨 Pure Minimalist Design** - Nothing but ocean and sky - no UI clutter
+- **🎨 Pure Minimalist Design** - Immersive underwater experience with no UI clutter
+- **🌊 Underwater Perspective** - Camera positioned underwater looking up at the surface
+- **💎 Transparent Water** - Dynamic transparency based on viewing angle and depth
 - **🌅 True 3D Ocean Scene** - Fully 3D geometry with depth, perspective, and realistic rendering
-- **🌊 Real 3D Waves** - 100x100 mesh grid with vertex displacement for authentic wave motion
-- **💡 Advanced Lighting** - Diffuse lighting, specular highlights, and sun reflections
-- **🌈 Fresnel Effect** - Realistic water-sky reflections at grazing angles
-- **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow
-- **💧 3D Interactive Ripples** - Hand movements create real geometric ripples in 3D space
-- **🌫️ Distance Fog** - Atmospheric depth with fog blending water into horizon
+- **🌊 Real 3D Waves** - 150x150 mesh grid with vertex displacement for ultra-smooth wave motion
+- **☀️ Underwater Lighting** - Sunlight penetrating from above with realistic scattering
+- **✨ Caustics Effect** - Animated light patterns dancing on the background
+- **🌟 God Rays** - Volumetric sun rays piercing through the water surface
+- **🌈 Fresnel Effect** - Realistic water transparency based on viewing angle
+- **💧 3D Interactive Ripples** - Hand movements create real geometric ripples through transparent water
+- **🌫️ Underwater Fog** - Atmospheric depth with deep blue-green murk in the distance
 - **👋 Real-time hand tracking** using MediaPipe Hands
 - **🤲 Multi-hand support** - Tracks up to 2 hands simultaneously with ripples from each
 - **📹 Minimal Camera View** - Tiny camera feed in top-left corner with hover zoom effect
@@ -24,11 +27,12 @@ A mesmerizing, minimalist web-based hand tracking application that combines Medi
 
 1. Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 2. Allow camera access when prompted
-3. Enjoy the pure ocean view filling your entire screen
-4. Move your hands to create beautiful ripples across the water!
-5. The tiny camera in the top-left shows your hand tracking (hover to zoom)
+3. Enjoy the immersive underwater view filling your entire screen
+4. Move your hands to create beautiful ripples through the transparent water!
+5. Watch the caustics dance and god rays shimmer as waves move above
+6. The tiny camera in the top-left shows your hand tracking (hover to zoom)
 
-**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects! The experience is designed to be meditative and immersive.
+**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects! The underwater perspective creates a unique, meditative experience as you look up at the water surface from below.
 
 ### Option 2: Using a Local Server
 
@@ -63,12 +67,13 @@ Then open your browser and navigate to: `http://localhost:8000`
 
 ## How It Works
 
-### True 3D Ocean Rendering
-The ocean is a real 3D mesh rendered in WebGL:
-- **High-Resolution Mesh** - 150x150 vertex grid (22,801 vertices) for ultra-smooth ocean surface
+### True 3D Underwater Rendering
+The scene uses a real 3D mesh rendered in WebGL with underwater perspective:
+- **High-Resolution Mesh** - 150x150 vertex grid (22,801 vertices) for ultra-smooth water surface
 - **Vertex Shader** - Displaces each vertex based on physically-accurate wave functions in 3D space
-- **3D Camera** - Perspective projection with adjustable FOV looking down at the ocean
+- **Underwater Camera** - Perspective projection positioned below water surface looking up
 - **Real Depth** - Proper depth testing and z-buffering for authentic 3D appearance
+- **Alpha Blending** - WebGL transparency with SRC_ALPHA blending for realistic water clarity
 
 ### Physically-Based Wave System
 Realistic ocean motion using Gerstner waves:
@@ -81,18 +86,20 @@ Realistic ocean motion using Gerstner waves:
 - **Smooth Normals** - Per-vertex normals computed from neighboring vertices for proper lighting
 - **Dynamic Animation** - Multiple wave directions and speeds create complex, natural ocean behavior
 
-### Advanced Lighting and Materials
-Photorealistic water rendering with multiple lighting techniques:
-- **Blinn-Phong Specular** - Enhanced specular highlights with sun-colored reflections
-- **Schlick's Fresnel** - Physically-accurate Fresnel approximation (F = F0 + (1-F0)(1-cosθ)^5)
-- **Subsurface Scattering** - Light penetration simulation for translucent water appearance
-- **Diffuse Shading** - Wave slopes receive different light intensities based on angle
-- **Dynamic Specular Power** - Sharper reflections at grazing angles (32-128 specular power range)
-- **Depth-Based Colors** - Realistic color transition from shallow to deep water
-- **Enhanced Foam** - Foam appears on wave peaks and steep slopes for realism
-- **Atmospheric Scattering** - Distance-based fog blending water into horizon
-- **Sky Reflections** - Water reflects sky color based on Fresnel effect
-- **Color Variation** - Subtle noise adds natural color variation to water surface
+### Advanced Underwater Lighting and Materials
+Photorealistic underwater rendering with specialized lighting techniques:
+- **Top-Down Lighting** - Sunlight penetrates from above, illuminating water from the surface
+- **Blinn-Phong Specular** - Soft specular highlights with sun-colored reflections (16-64 power range)
+- **Schlick's Fresnel** - Physically-accurate transparency based on viewing angle
+- **Dynamic Transparency** - Water opacity varies from 30-70% based on Fresnel and depth
+- **Enhanced Subsurface Scattering** - Light penetration from above creates realistic underwater glow
+- **Diffuse Shading** - Higher ambient term (50%) for underwater atmosphere
+- **Depth-Based Colors** - Realistic color transition from light to deep water blues
+- **Minimal Foam** - Reduced foam visibility from underwater perspective
+- **Underwater Fog** - Distance fades to deep blue-green murk (not sky)
+- **Caustics Effect** - Animated light patterns from surface waves
+- **God Rays** - Volumetric sun rays penetrating water surface
+- **Color Variation** - Subtle noise adds natural underwater color variation
 
 ### 3D Interactive Ripples
 Hand-triggered ripples are real geometric deformations:
@@ -117,9 +124,11 @@ Each ripple:
 
 ## Design Philosophy
 
-This app embraces minimalism for a meditative, immersive experience:
-- **No UI clutter** - Just ocean, sky, and your hands
-- **Natural interaction** - Move your hands naturally; ripples follow
+This app embraces minimalism for a meditative, immersive underwater experience:
+- **No UI clutter** - Just transparent water, underwater atmosphere, and your hands
+- **Underwater Perspective** - Experience the unique view from beneath the ocean surface
+- **Natural interaction** - Move your hands naturally; ripples flow through transparent water
+- **Atmospheric Effects** - Caustics, god rays, and underwater fog create immersion
 - **Mirrored camera** - Camera feed is mirrored for intuitive control
 - **Hover to inspect** - Hover over the small camera to see hand tracking details
 
