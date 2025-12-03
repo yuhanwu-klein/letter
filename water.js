@@ -1,6 +1,6 @@
 // 3D Ocean Water Simulation with WebGL
 class WaterSimulation {
-    constructor(canvasId) {
+    constructor(canvasId, jellyfishCanvasId) {
         this.canvas = document.getElementById(canvasId);
         this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
 
@@ -8,6 +8,10 @@ class WaterSimulation {
             console.error('WebGL not supported');
             return;
         }
+
+        // Setup jellyfish canvas
+        this.jellyfishCanvas = document.getElementById(jellyfishCanvasId);
+        this.jellyfishCtx = this.jellyfishCanvas.getContext('2d');
 
         this.ripples = [];
         this.maxRipples = 50;
@@ -30,6 +34,13 @@ class WaterSimulation {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+        // Also resize jellyfish canvas
+        if (this.jellyfishCanvas) {
+            this.jellyfishCanvas.width = window.innerWidth;
+            this.jellyfishCanvas.height = window.innerHeight;
+        }
+
         this.updateProjectionMatrix();
     }
 
@@ -431,34 +442,12 @@ class WaterSimulation {
             uniform float u_time;
 
             void main() {
-                // Underwater ambient colors - darker blues/greens
-                vec3 deepWater = vec3(0.0, 0.1, 0.2);
-                vec3 lightWater = vec3(0.1, 0.3, 0.5);
+                // Light blue background colors
+                vec3 deepBlue = vec3(0.6, 0.8, 0.95);
+                vec3 lightBlue = vec3(0.8, 0.9, 1.0);
 
                 float gradient = v_uv.y;
-                vec3 skyColor = mix(deepWater, lightWater, gradient * 0.7);
-
-                // Add animated caustics effect (light patterns from water surface)
-                float caustics1 = sin(v_uv.x * 15.0 + u_time * 0.3) * sin(v_uv.y * 12.0 - u_time * 0.25);
-                float caustics2 = sin(v_uv.x * 12.0 - u_time * 0.2) * cos(v_uv.y * 15.0 + u_time * 0.35);
-                float caustics = (caustics1 + caustics2) * 0.5;
-                caustics = smoothstep(-0.3, 0.8, caustics) * 0.15;
-                skyColor += vec3(caustics * 0.8, caustics, caustics * 1.2);
-
-                // Sun rays from surface (god rays effect)
-                vec2 sunPos = vec2(0.5, 0.7);
-                vec2 toSun = v_uv - sunPos;
-                float rayAngle = atan(toSun.y, toSun.x);
-                float rayDist = length(toSun);
-
-                float rays = sin(rayAngle * 12.0 + u_time * 0.1) * 0.5 + 0.5;
-                rays *= smoothstep(0.8, 0.0, rayDist);
-                rays *= smoothstep(0.0, 0.2, rayDist);
-                skyColor += vec3(rays * 0.3, rays * 0.4, rays * 0.5);
-
-                // Bright area where sun penetrates water surface
-                float sunGlow = smoothstep(0.4, 0.0, length(v_uv - sunPos));
-                skyColor += vec3(sunGlow * 0.3, sunGlow * 0.4, sunGlow * 0.5);
+                vec3 skyColor = mix(deepBlue, lightBlue, gradient * 0.7);
 
                 gl_FragColor = vec4(skyColor, 1.0);
             }
@@ -615,10 +604,22 @@ class WaterSimulation {
         // Render water
         this.renderWater();
 
+        // Update and render jellyfish
+        if (this.handPositions) {
+            this.updateJellyfish(this.handPositions);
+        } else {
+            this.updateJellyfish([]);
+        }
+        this.renderJellyfish();
+
         // Clean up old ripples (older than 2 seconds)
         this.ripples = this.ripples.filter(r => (this.time - r[2]) < 2.0);
 
         requestAnimationFrame(() => this.animate());
+    }
+
+    setHandPositions(positions) {
+        this.handPositions = positions;
     }
 
     renderSky() {
@@ -677,10 +678,198 @@ class WaterSimulation {
     getRippleCount() {
         return this.ripples.length;
     }
+
+    addJellyfish(jellyfish) {
+        if (!this.jellyfish) {
+            this.jellyfish = [];
+        }
+        this.jellyfish.push(jellyfish);
+    }
+
+    getJellyfish() {
+        return this.jellyfish || [];
+    }
+
+    updateJellyfish(handPositions) {
+        if (!this.jellyfish) return;
+
+        this.jellyfish.forEach(jelly => {
+            jelly.update(this.time, handPositions);
+        });
+    }
+
+    renderJellyfish() {
+        if (!this.jellyfish || this.jellyfish.length === 0 || !this.jellyfishCtx) return;
+
+        // Clear jellyfish canvas
+        this.jellyfishCtx.clearRect(0, 0, this.jellyfishCanvas.width, this.jellyfishCanvas.height);
+
+        // Render all jellyfish
+        this.jellyfish.forEach(jelly => {
+            jelly.render(this.jellyfishCtx, this.jellyfishCanvas.width, this.jellyfishCanvas.height);
+        });
+    }
+}
+
+// Jellyfish class
+class Jellyfish {
+    constructor(x, y, color) {
+        this.x = x; // Normalized 0-1
+        this.y = y; // Normalized 0-1
+        this.vx = (Math.random() - 0.5) * 0.0005;
+        this.vy = (Math.random() - 0.5) * 0.0005;
+        this.size = 30 + Math.random() * 40; // Size in pixels
+        this.color = color || `hsla(${180 + Math.random() * 60}, 70%, 60%, 0.6)`;
+        this.phase = Math.random() * Math.PI * 2;
+        this.pulseSpeed = 0.8 + Math.random() * 0.4;
+        this.tentacles = [];
+        this.targetX = null;
+        this.targetY = null;
+        this.attractionStrength = 0.00005;
+
+        // Create tentacles
+        const numTentacles = 6 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < numTentacles; i++) {
+            this.tentacles.push({
+                angle: (Math.PI * 2 * i) / numTentacles,
+                length: this.size * 0.8 + Math.random() * this.size * 0.4,
+                phase: Math.random() * Math.PI * 2,
+                segments: 8
+            });
+        }
+    }
+
+    update(time, handPositions) {
+        // Natural floating movement
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Gentle wave motion
+        this.x += Math.sin(time * 0.5 + this.phase) * 0.00005;
+        this.y += Math.cos(time * 0.3 + this.phase) * 0.00005;
+
+        // Move towards hand if detected
+        if (handPositions && handPositions.length > 0) {
+            // Find closest hand
+            let closestHand = handPositions[0];
+            let minDist = Infinity;
+
+            handPositions.forEach(hand => {
+                const dx = hand.x - this.x;
+                const dy = hand.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestHand = hand;
+                }
+            });
+
+            // Move towards closest hand
+            const dx = closestHand.x - this.x;
+            const dy = closestHand.y - this.y;
+            this.vx += dx * this.attractionStrength;
+            this.vy += dy * this.attractionStrength;
+        }
+
+        // Apply drag
+        this.vx *= 0.98;
+        this.vy *= 0.98;
+
+        // Boundary wrapping
+        if (this.x < -0.1) this.x = 1.1;
+        if (this.x > 1.1) this.x = -0.1;
+        if (this.y < -0.1) this.y = 1.1;
+        if (this.y > 1.1) this.y = -0.1;
+    }
+
+    render(ctx, width, height) {
+        const x = this.x * width;
+        const y = this.y * height;
+        const time = Date.now() * 0.001;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        // Pulsing effect
+        const pulse = Math.sin(time * this.pulseSpeed) * 0.15 + 1;
+
+        // Draw tentacles
+        this.tentacles.forEach(tentacle => {
+            ctx.beginPath();
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            const segments = tentacle.segments;
+            const segmentLength = tentacle.length / segments;
+
+            let currentX = 0;
+            let currentY = 0;
+
+            ctx.moveTo(currentX, currentY);
+
+            for (let i = 0; i < segments; i++) {
+                const wave = Math.sin(time * 2 + tentacle.phase + i * 0.5) * 8;
+                const nextX = Math.cos(tentacle.angle) * segmentLength * (i + 1) + wave;
+                const nextY = Math.sin(tentacle.angle) * segmentLength * (i + 1) + this.size * 0.3;
+
+                ctx.lineTo(nextX, nextY);
+                currentX = nextX;
+                currentY = nextY;
+            }
+
+            ctx.stroke();
+        });
+
+        // Draw bell (body)
+        ctx.beginPath();
+        const bellSize = this.size * pulse;
+
+        // Create bell shape using bezier curves
+        ctx.moveTo(0, -bellSize * 0.3);
+        ctx.bezierCurveTo(
+            bellSize * 0.6, -bellSize * 0.3,
+            bellSize * 0.7, bellSize * 0.2,
+            0, bellSize * 0.4
+        );
+        ctx.bezierCurveTo(
+            -bellSize * 0.7, bellSize * 0.2,
+            -bellSize * 0.6, -bellSize * 0.3,
+            0, -bellSize * 0.3
+        );
+
+        // Gradient fill
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, bellSize);
+        gradient.addColorStop(0, this.color.replace('0.6', '0.8'));
+        gradient.addColorStop(0.5, this.color);
+        gradient.addColorStop(1, this.color.replace('0.6', '0.3'));
+
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Add inner glow
+        ctx.beginPath();
+        ctx.arc(0, 0, bellSize * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fill();
+
+        ctx.restore();
+    }
 }
 
 // Initialize water simulation
 let waterSim;
 window.addEventListener('DOMContentLoaded', () => {
-    waterSim = new WaterSimulation('waterCanvas');
+    waterSim = new WaterSimulation('waterCanvas', 'jellyfishCanvas');
+
+    // Generate jellyfish
+    const jellyfishCount = 8;
+    for (let i = 0; i < jellyfishCount; i++) {
+        const x = Math.random();
+        const y = Math.random();
+        const hue = 180 + Math.random() * 60; // Blue-cyan range
+        const color = `hsla(${hue}, 70%, 60%, 0.6)`;
+        const jelly = new Jellyfish(x, y, color);
+        waterSim.addJellyfish(jelly);
+    }
 });
