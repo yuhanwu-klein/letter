@@ -35,6 +35,11 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
+    transition: opacity 2s ease-in;
+}
+
+#particleCanvas.visible {
+    opacity: 1 !important;
 }
 
 /* Stats Panel - Flat Design */
@@ -80,8 +85,8 @@ body {
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-/* Instruction Overlay */
-.instruction-overlay {
+/* Title Overlay */
+.title-overlay {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -89,10 +94,10 @@ body {
     text-align: center;
     z-index: 50;
     pointer-events: none;
-    transition: opacity 1s ease-out;
+    transition: opacity 2s ease-out;
 }
 
-.instruction-overlay.hidden {
+.title-overlay.hidden {
     opacity: 0;
 }
 
@@ -113,61 +118,6 @@ body {
     letter-spacing: 8px;
     color: #00ffff;
     opacity: 0.7;
-    margin-bottom: 60px;
-}
-
-/* Cosmic Poetry Section */
-.cosmic-poetry {
-    max-width: 900px;
-    margin: 40px auto 0;
-    padding: 30px;
-    background: rgba(0, 20, 40, 0.3);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-}
-
-.poetry-line {
-    font-size: 14px;
-    line-height: 2;
-    color: #00ffff;
-    opacity: 0.8;
-    letter-spacing: 1.5px;
-    margin-bottom: 15px;
-    text-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
-    animation: poetryGlow 4s ease-in-out infinite;
-}
-
-.poetry-line:last-child {
-    margin-bottom: 0;
-}
-
-@keyframes poetryGlow {
-    0%, 100% {
-        opacity: 0.8;
-        text-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
-    }
-    50% {
-        opacity: 0.95;
-        text-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
-    }
-}
-
-.instruction-text {
-    margin-top: 40px;
-}
-
-.instruction-text p {
-    font-size: 16px;
-    color: #00ffff;
-    opacity: 0.6;
-    margin-bottom: 10px;
-    letter-spacing: 2px;
-}
-
-.instruction-text p.small {
-    font-size: 12px;
-    opacity: 0.4;
-    font-style: italic;
 }
 
 @keyframes pulse {

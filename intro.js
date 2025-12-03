@@ -5,9 +5,8 @@ class WhaleFallParticles {
         this.particleCount = 35000;
         this.currentShapeIndex = 0;
         this.morphProgress = 0;
-        this.handDetected = false;
-        this.interactionCount = 0;
         this.transitionTriggered = false;
+        this.particlesActive = false;
 
         // Mathematical shapes
         this.shapes = [
@@ -21,7 +20,7 @@ class WhaleFallParticles {
         ];
 
         this.init();
-        this.setupHandTracking();
+        this.setupAutoTrigger();
         this.animate();
     }
 
@@ -46,11 +45,6 @@ class WhaleFallParticles {
 
         // Create particle system
         this.createParticles();
-
-        // Stats
-        this.frameCount = 0;
-        this.lastTime = performance.now();
-        this.fps = 60;
 
         // Handle window resize
         window.addEventListener('resize', () => this.onResize());
@@ -275,9 +269,6 @@ class WhaleFallParticles {
 
         this.currentShapeIndex = nextShapeIndex;
         this.morphProgress = 0;
-
-        // Update UI
-        document.getElementById('currentShape').textContent = this.shapes[nextShapeIndex].name;
     }
 
     updateParticles(time) {
@@ -361,57 +352,17 @@ class WhaleFallParticles {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
-    handleHandInteraction(handLandmarks) {
-        if (!handLandmarks) return;
-
-        this.handDetected = true;
-        this.interactionCount++;
-
-        // Update status
-        document.getElementById('handStatus').textContent = 'DETECTED';
-
-        // Get palm center
-        const palm = handLandmarks[9];
-        const handX = (palm.x - 0.5) * 100;
-        const handY = (0.5 - palm.y) * 100;
-        const handZ = -palm.z * 50;
-
-        // Apply force to nearby particles
-        const positions = this.particles.geometry.attributes.position.array;
-        const velocities = this.particles.geometry.attributes.velocity.array;
-
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            const dx = positions[i3] - handX;
-            const dy = positions[i3 + 1] - handY;
-            const dz = positions[i3 + 2] - handZ;
-            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-            if (dist < 20) {
-                const force = (1 - dist / 20) * 0.5;
-                velocities[i3] += (dx / dist) * force;
-                velocities[i3 + 1] += (dy / dist) * force;
-                velocities[i3 + 2] += (dz / dist) * force;
-            }
-        }
-
-        // Trigger shape morph on interaction
-        if (this.interactionCount % 120 === 0) {
-            this.morphToNextShape();
-        }
-
-        // Trigger transition after sufficient interaction
-        if (this.interactionCount > 300 && !this.transitionTriggered) {
-            this.triggerTransition();
-        }
-    }
 
     triggerTransition() {
         this.transitionTriggered = true;
 
-        // Fade out instruction overlay
-        document.getElementById('instructionOverlay').classList.add('hidden');
-        document.querySelector('.stats-panel').classList.add('transitioning');
+        // Fade out title overlay if still visible
+        const titleOverlay = document.getElementById('titleOverlay');
+        if (titleOverlay) {
+            titleOverlay.classList.add('hidden');
+        }
+
+        // Fade out background and transition
         document.body.classList.add('transitioning');
 
         // Transition to underwater scene
@@ -420,62 +371,42 @@ class WhaleFallParticles {
         }, 2000);
     }
 
-    setupHandTracking() {
-        const video = document.getElementById('handVideo');
-        const canvas = document.getElementById('handCanvas');
+    setupAutoTrigger() {
+        // After 5 seconds, fade in particles and start morphing
+        setTimeout(() => {
+            this.activateParticles();
+        }, 5000);
 
-        const hands = new Hands({
-            locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        // Start shape morphing every 8 seconds after activation
+        setInterval(() => {
+            if (this.particlesActive) {
+                this.morphToNextShape();
             }
-        });
+        }, 8000);
 
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-
-        hands.onResults((results) => {
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                this.handleHandInteraction(results.multiHandLandmarks[0]);
-            } else {
-                this.handDetected = false;
-                document.getElementById('handStatus').textContent = 'WAITING';
-            }
-        });
-
-        const camera = new Camera(video, {
-            onFrame: async () => {
-                await hands.send({ image: video });
-            },
-            width: 640,
-            height: 480
-        });
-
-        camera.start();
+        // Transition to ocean scene after 20 seconds total
+        setTimeout(() => {
+            this.triggerTransition();
+        }, 20000);
     }
 
-    updateStats(time) {
-        this.frameCount++;
+    activateParticles() {
+        this.particlesActive = true;
 
-        if (time - this.lastTime > 1000) {
-            this.fps = Math.round(this.frameCount * 1000 / (time - this.lastTime));
-            this.frameCount = 0;
-            this.lastTime = time;
+        // Fade in particle canvas
+        this.canvas.classList.add('visible');
 
-            document.getElementById('fps').textContent = this.fps;
+        // Fade out title overlay
+        const titleOverlay = document.getElementById('titleOverlay');
+        if (titleOverlay) {
+            titleOverlay.classList.add('hidden');
         }
-
-        document.getElementById('particleCount').textContent = this.particleCount.toLocaleString();
     }
 
     animate() {
         const time = performance.now();
 
         this.updateParticles(time);
-        this.updateStats(time);
         this.renderer.render(this.scene, this.camera);
 
         requestAnimationFrame(() => this.animate());
