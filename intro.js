@@ -7,6 +7,8 @@ class WhaleFallParticles {
         this.morphProgress = 0;
         this.transitionTriggered = false;
         this.particlesActive = false;
+        this.transitionProgress = 0;
+        this.isTransitioning = false;
 
         // Mathematical shapes
         this.shapes = [
@@ -120,6 +122,9 @@ class WhaleFallParticles {
         // Store original positions for morphing
         this.originalPositions = positions.slice();
         this.targetPositions = new Float32Array(this.particleCount * 3);
+
+        // Store original colors for transition
+        this.originalColors = colors.slice();
     }
 
     // Mathematical Shape: Whale Fall (particles falling like marine snow)
@@ -355,6 +360,8 @@ class WhaleFallParticles {
 
     triggerTransition() {
         this.transitionTriggered = true;
+        this.isTransitioning = true;
+        this.transitionStartTime = performance.now();
 
         // Fade out title overlay if still visible
         const titleOverlay = document.getElementById('titleOverlay');
@@ -365,10 +372,10 @@ class WhaleFallParticles {
         // Fade out background and transition
         document.body.classList.add('transitioning');
 
-        // Transition to underwater scene
+        // Transition to underwater scene after animation completes (3 seconds)
         setTimeout(() => {
             window.location.href = 'ocean.html';
-        }, 2000);
+        }, 3000);
     }
 
     setupAutoTrigger() {
@@ -403,8 +410,56 @@ class WhaleFallParticles {
         }
     }
 
+    transitionParticleColors(progress) {
+        const colors = this.particles.geometry.attributes.color.array;
+
+        // Target light blue ocean color
+        const targetR = 0.3;
+        const targetG = 0.8;
+        const targetB = 1.0;
+
+        for (let i = 0; i < this.particleCount; i++) {
+            const i3 = i * 3;
+
+            // Get original color
+            const originalR = this.originalColors[i3];
+            const originalG = this.originalColors[i3 + 1];
+            const originalB = this.originalColors[i3 + 2];
+
+            // Interpolate from original to light blue
+            colors[i3] = originalR + (targetR - originalR) * progress;
+            colors[i3 + 1] = originalG + (targetG - originalG) * progress;
+            colors[i3 + 2] = originalB + (targetB - originalB) * progress;
+        }
+
+        this.particles.geometry.attributes.color.needsUpdate = true;
+    }
+
     animate() {
         const time = performance.now();
+
+        // Handle camera transition animation
+        if (this.isTransitioning) {
+            const elapsed = time - this.transitionStartTime;
+            const duration = 3000; // 3 seconds for transition
+            this.transitionProgress = Math.min(elapsed / duration, 1);
+
+            // Smooth easing for camera movement
+            const easeProgress = this.easeInOutCubic(this.transitionProgress);
+
+            // Animate camera from sky (y=50, z=50) down to ocean (y=-30, z=50)
+            const startY = 0;
+            const endY = -80;
+            this.camera.position.y = startY + (endY - startY) * easeProgress;
+
+            // Tilt camera to look down
+            const startRotation = 0;
+            const endRotation = Math.PI * 0.3; // Tilt down 54 degrees
+            this.camera.rotation.x = startRotation + (endRotation - startRotation) * easeProgress;
+
+            // Transition particles to light blue ocean color
+            this.transitionParticleColors(easeProgress);
+        }
 
         this.updateParticles(time);
         this.renderer.render(this.scene, this.camera);
