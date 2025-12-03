@@ -13,6 +13,21 @@ body {
     color: #00ffff;
 }
 
+/* Background Image */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('generated-image-2278062e-228a-4629-97c9-b8d120a5c30c.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    opacity: 1;
+}
+
 #particleCanvas {
     position: fixed;
     top: 0;
