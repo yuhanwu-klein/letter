@@ -24,11 +24,11 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.85);
     border-radius: 20px;
-    padding: 30px;
+    padding: 25px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 1;
@@ -39,7 +39,7 @@ h1 {
     text-align: center;
     color: #006994;
     margin-bottom: 10px;
-    font-size: 2.5em;
+    font-size: 2em;
     text-shadow: 2px 2px 4px rgba(0, 105, 148, 0.3);
 }
 
@@ -61,11 +61,12 @@ h1 {
 .video-container {
     position: relative;
     width: 100%;
-    max-width: 640px;
+    max-width: 400px;
     margin: 0 auto 20px;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    border: 3px solid rgba(255, 255, 255, 0.5);
 }
 
 #video {
@@ -132,9 +133,9 @@ button:active {
 
 .landmarks-info {
     background: #f0f8ff;
-    padding: 20px;
+    padding: 15px;
     border-radius: 10px;
-    margin-top: 20px;
+    margin-top: 15px;
     border: 2px solid rgba(0, 105, 148, 0.2);
 }
 
@@ -159,12 +160,20 @@ button:active {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
     .container {
         padding: 15px;
     }
 
     h1 {
-        font-size: 1.8em;
+        font-size: 1.5em;
+    }
+
+    .video-container {
+        max-width: 100%;
     }
 
     .controls {

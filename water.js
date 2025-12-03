@@ -47,14 +47,22 @@ class WaterSimulation {
             uniform vec3 u_ripples[${this.maxRipples}];
             uniform int u_rippleCount;
 
+            // Sky colors
+            vec3 skyTop = vec3(0.4, 0.6, 0.95);
+            vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
+
             // Ocean colors
             vec3 deepWater = vec3(0.0, 0.2, 0.4);
             vec3 shallowWater = vec3(0.0, 0.4, 0.6);
             vec3 foam = vec3(0.7, 0.9, 1.0);
 
-            float wave(vec2 uv, float time) {
-                float freq = 3.0;
-                float amp = 0.02;
+            // Horizon position (0.0-1.0, where 0.35 means 35% from top)
+            float horizonY = 0.35;
+
+            float wave(vec2 uv, float time, float perspective) {
+                // Adjust frequency and amplitude based on perspective (distance)
+                float freq = 3.0 + perspective * 5.0;
+                float amp = 0.02 * (1.0 - perspective * 0.7);
 
                 float w1 = sin(uv.x * freq + time * 0.5) * amp;
                 float w2 = sin(uv.y * freq * 1.3 + time * 0.7) * amp;
@@ -63,7 +71,7 @@ class WaterSimulation {
                 return w1 + w2 + w3;
             }
 
-            float ripple(vec2 uv, vec2 center, float time, float strength) {
+            float ripple(vec2 uv, vec2 center, float time, float strength, float perspective) {
                 float dist = length(uv - center);
                 float rippleTime = time * 2.0;
 
@@ -73,52 +81,92 @@ class WaterSimulation {
                 float rippleSpeed = 3.0;
                 float decay = exp(-rippleTime * 1.5);
 
+                // Scale ripple effect by perspective
                 float r = sin((dist - rippleTime * rippleSpeed) * rippleFreq) * decay * strength;
                 r *= smoothstep(0.5, 0.0, dist);
+                r *= (1.0 - perspective * 0.5); // Reduce ripple visibility at horizon
 
                 return r * 0.3;
             }
 
             void main() {
                 vec2 uv = v_uv;
-                uv.x *= u_resolution.x / u_resolution.y;
 
-                // Base wave animation
-                float waves = wave(uv, u_time);
+                // Determine if we're in sky or water region
+                if (uv.y < horizonY) {
+                    // SKY REGION
+                    // Create gradient from top to horizon
+                    float skyMix = uv.y / horizonY;
+                    vec3 skyColor = mix(skyTop, skyHorizon, skyMix);
 
-                // Add ripples from hand movement
-                float rippleEffect = 0.0;
-                for (int i = 0; i < ${this.maxRipples}; i++) {
-                    if (i >= u_rippleCount) break;
+                    // Add some subtle clouds
+                    float clouds = sin(uv.x * 8.0 + u_time * 0.1) * sin(uv.y * 12.0 + u_time * 0.15);
+                    clouds = clouds * 0.05 + 0.05;
+                    skyColor += vec3(clouds);
 
-                    vec2 ripplePos = u_ripples[i].xy;
-                    ripplePos.x *= u_resolution.x / u_resolution.y;
-                    float rippleTime = u_time - u_ripples[i].z;
+                    // Add sun glow near horizon
+                    float sunGlow = smoothstep(0.3, 0.0, length(uv - vec2(0.5, horizonY)));
+                    skyColor += vec3(sunGlow * 0.2, sunGlow * 0.15, sunGlow * 0.05);
 
-                    rippleEffect += ripple(uv, ripplePos, rippleTime, 1.0);
+                    gl_FragColor = vec4(skyColor, 1.0);
+                } else {
+                    // OCEAN REGION
+                    // Perspective calculation - closer to horizon = further away
+                    float distFromHorizon = (uv.y - horizonY) / (1.0 - horizonY);
+                    float perspective = 1.0 - distFromHorizon;
+
+                    // Adjust UV for aspect ratio
+                    vec2 oceanUV = uv;
+                    oceanUV.x *= u_resolution.x / u_resolution.y;
+
+                    // Apply perspective stretch to create depth
+                    oceanUV.y = horizonY + (uv.y - horizonY) / (1.0 + perspective * 2.0);
+
+                    // Base wave animation with perspective
+                    float waves = wave(oceanUV, u_time, perspective);
+
+                    // Add ripples from hand movement
+                    float rippleEffect = 0.0;
+                    for (int i = 0; i < ${this.maxRipples}; i++) {
+                        if (i >= u_rippleCount) break;
+
+                        vec2 ripplePos = u_ripples[i].xy;
+                        ripplePos.x *= u_resolution.x / u_resolution.y;
+
+                        // Map ripple position to perspective space
+                        float ripplePerspective = 1.0 - (ripplePos.y - horizonY) / (1.0 - horizonY);
+                        ripplePos.y = horizonY + (ripplePos.y - horizonY) / (1.0 + ripplePerspective * 2.0);
+
+                        float rippleTime = u_time - u_ripples[i].z;
+                        rippleEffect += ripple(oceanUV, ripplePos, rippleTime, 1.0, perspective);
+                    }
+
+                    // Combine waves and ripples
+                    float height = waves + rippleEffect;
+
+                    // Calculate color based on wave height and distance
+                    vec3 waterColor = mix(deepWater, shallowWater, height * 10.0 + 0.5);
+
+                    // Darken water near horizon (atmospheric perspective)
+                    waterColor = mix(waterColor, deepWater, perspective * 0.5);
+
+                    // Add foam/highlights on wave peaks
+                    if (height > 0.03) {
+                        waterColor = mix(waterColor, foam, (height - 0.03) * 15.0);
+                    }
+
+                    // Add shimmer that's stronger in foreground
+                    float shimmer = sin(oceanUV.x * 50.0 + u_time * 3.0) * sin(oceanUV.y * 50.0 + u_time * 2.5);
+                    shimmer = shimmer * 0.1 + 0.9;
+                    shimmer = mix(shimmer, 1.0, perspective * 0.7);
+                    waterColor *= shimmer;
+
+                    // Reflection of sky at horizon
+                    float horizonReflection = smoothstep(0.0, 0.2, perspective);
+                    waterColor = mix(waterColor, skyHorizon * 0.6, horizonReflection * 0.3);
+
+                    gl_FragColor = vec4(waterColor, 1.0);
                 }
-
-                // Combine waves and ripples
-                float height = waves + rippleEffect;
-
-                // Calculate color based on wave height
-                vec3 waterColor = mix(deepWater, shallowWater, height * 10.0 + 0.5);
-
-                // Add foam/highlights on wave peaks
-                if (height > 0.03) {
-                    waterColor = mix(waterColor, foam, (height - 0.03) * 15.0);
-                }
-
-                // Add some shimmer
-                float shimmer = sin(uv.x * 50.0 + u_time * 3.0) * sin(uv.y * 50.0 + u_time * 2.5);
-                shimmer = shimmer * 0.1 + 0.9;
-                waterColor *= shimmer;
-
-                // Vignette effect
-                float vignette = 1.0 - length(v_uv - 0.5) * 0.5;
-                waterColor *= vignette;
-
-                gl_FragColor = vec4(waterColor, 1.0);
             }
         `;
 

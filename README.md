@@ -4,11 +4,13 @@ A mesmerizing web-based hand tracking application that combines MediaPipe Hands 
 
 ## Features
 
+- **🌅 Ocean Perspective View** - Immersive ocean scene with sky, horizon, and perspective depth
 - **🌊 Realistic Ocean Simulation** - Beautiful WebGL-rendered water with dynamic waves
-- **💧 Interactive Ripples** - Hand movements generate realistic water ripples
+- **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow at horizon
+- **💧 Interactive Ripples** - Hand movements generate realistic water ripples with perspective scaling
 - **👋 Real-time hand tracking** using MediaPipe Hands
 - **🤲 Multi-hand support** - tracks up to 2 hands simultaneously with ripples from each
-- **✨ Visual feedback** with skeleton overlay on video feed
+- **✨ Visual feedback** with skeleton overlay on compact video feed
 - **🎨 Color-coded hands** - Left hand (green), Right hand (red)
 - **📊 Live statistics** - FPS counter, hand count, and active ripple count
 - **📍 Landmark coordinates** - Real-time display of key hand landmarks (wrist, fingertips)
@@ -59,12 +61,22 @@ Then open your browser and navigate to: `http://localhost:8000`
 
 ## How It Works
 
+### Ocean Perspective View
+The app creates a realistic ocean scene with:
+- **Sky gradient** - Beautiful gradient from deep blue at top to light blue at horizon
+- **Horizon line** - Clear separation between sky and ocean at 35% from top
+- **Sun glow** - Warm atmospheric glow near the horizon
+- **Subtle clouds** - Animated cloud patterns in the sky
+- **Perspective depth** - Waves appear smaller and denser near the horizon, larger in foreground
+
 ### Ocean Simulation
 The ocean background uses WebGL shaders to create:
-- **Base waves** - Continuous animated water surface with multiple wave frequencies
-- **Dynamic ripples** - Physics-based ripple propagation with decay over time
+- **Base waves** - Continuous animated water surface with perspective-adjusted frequencies
+- **Dynamic ripples** - Physics-based ripple propagation with perspective scaling
 - **Realistic colors** - Gradient from deep water to shallow water with foam on peaks
-- **Shimmer effects** - Light reflection simulation for added realism
+- **Atmospheric perspective** - Water darkens toward horizon for depth perception
+- **Sky reflection** - Horizon area reflects the sky for added realism
+- **Shimmer effects** - Light reflection simulation stronger in foreground
 
 ### Hand Movement Detection
 The app tracks your hand position in 3D space and:
