@@ -1,21 +1,19 @@
 # 🌊 Ocean Hand Tracker - Interactive Water Ripples
 
-A mesmerizing web-based hand tracking application that combines MediaPipe Hands with realistic WebGL water simulation. Your hand movements create beautiful ripples in a virtual ocean!
+A mesmerizing, minimalist web-based hand tracking application that combines MediaPipe Hands with realistic WebGL water simulation. Experience a pure, immersive ocean view where your hand movements create beautiful ripples across the water!
 
 ## Features
 
+- **🎨 Pure Minimalist Design** - Nothing but ocean and sky - no UI clutter
 - **🌅 Ocean Perspective View** - Immersive full-screen ocean scene with sky, horizon, and perspective depth
 - **🌊 Realistic Ocean Simulation** - Beautiful WebGL-rendered water with dynamic waves
 - **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow at horizon
 - **💧 Interactive Ripples** - Hand movements generate realistic water ripples with perspective scaling
 - **👋 Real-time hand tracking** using MediaPipe Hands
-- **🤲 Multi-hand support** - tracks up to 2 hands simultaneously with ripples from each
-- **📹 Minimalist Camera View** - Small camera feed in top-left corner with hover zoom effect
+- **🤲 Multi-hand support** - Tracks up to 2 hands simultaneously with ripples from each
+- **📹 Minimal Camera View** - Tiny camera feed in top-left corner with hover zoom effect
 - **✨ Visual feedback** - Skeleton overlay on camera feed showing tracked hand landmarks
 - **🎨 Color-coded hands** - Left hand (green), Right hand (red)
-- **📊 Live statistics** - FPS counter, hand count, and active ripple count
-- **📍 Landmark coordinates** - Real-time display of key hand landmarks (wrist, fingertips)
-- **🎮 Start/Stop controls** - Toggle tracking on/off
 
 ## How to Use
 
@@ -23,11 +21,11 @@ A mesmerizing web-based hand tracking application that combines MediaPipe Hands 
 
 1. Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 2. Allow camera access when prompted
-3. Show your hand(s) to the camera
-4. Move your hands to create beautiful ripples in the water!
-5. Watch as the skeleton tracking overlay appears on your hands while ripples spread across the ocean
+3. Enjoy the pure ocean view filling your entire screen
+4. Move your hands to create beautiful ripples across the water!
+5. The tiny camera in the top-left shows your hand tracking (hover to zoom)
 
-**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects!
+**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects! The experience is designed to be meditative and immersive.
 
 ### Option 2: Using a Local Server
 
@@ -93,14 +91,17 @@ Each ripple:
 - Interferes with other ripples naturally
 - Respects distance falloff for realistic spreading
 
-## Controls
+## Design Philosophy
 
-- **Stop/Start Tracking Button** - Toggle hand tracking on/off
-- The video feed is mirrored for a natural experience
+This app embraces minimalism for a meditative, immersive experience:
+- **No UI clutter** - Just ocean, sky, and your hands
+- **Natural interaction** - Move your hands naturally; ripples follow
+- **Mirrored camera** - Camera feed is mirrored for intuitive control
+- **Hover to inspect** - Hover over the small camera to see hand tracking details
 
-## Hand Landmarks
+## Hand Tracking
 
-The app displays coordinates for 6 key landmarks per hand:
+The app silently tracks 21 landmarks per hand including:
 - Wrist (landmark 0)
 - Thumb tip (landmark 4)
 - Index finger tip (landmark 8)
