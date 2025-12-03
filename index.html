@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Movement Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Hand Movement Tracker</h1>
+        <div class="info">
+            <p>Show your hand(s) to the camera to track movement</p>
+            <p id="status">Loading camera...</p>
+        </div>
+
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="toggleBtn">Stop Tracking</button>
+            <div class="stats">
+                <p>Hands detected: <span id="handCount">0</span></p>
+                <p>FPS: <span id="fps">0</span></p>
+            </div>
+        </div>
+
+        <div class="landmarks-info">
+            <h3>Hand Landmarks</h3>
+            <div id="landmarksData"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="app.js"></script>
+</body>
+</html>
