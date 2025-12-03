@@ -5,10 +5,13 @@ A mesmerizing, minimalist web-based hand tracking application that combines Medi
 ## Features
 
 - **🎨 Pure Minimalist Design** - Nothing but ocean and sky - no UI clutter
-- **🌅 Ocean Perspective View** - Immersive full-screen ocean scene with sky, horizon, and perspective depth
-- **🌊 Realistic Ocean Simulation** - Beautiful WebGL-rendered water with dynamic waves
-- **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow at horizon
-- **💧 Interactive Ripples** - Hand movements generate realistic water ripples with perspective scaling
+- **🌅 True 3D Ocean Scene** - Fully 3D geometry with depth, perspective, and realistic rendering
+- **🌊 Real 3D Waves** - 100x100 mesh grid with vertex displacement for authentic wave motion
+- **💡 Advanced Lighting** - Diffuse lighting, specular highlights, and sun reflections
+- **🌈 Fresnel Effect** - Realistic water-sky reflections at grazing angles
+- **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow
+- **💧 3D Interactive Ripples** - Hand movements create real geometric ripples in 3D space
+- **🌫️ Distance Fog** - Atmospheric depth with fog blending water into horizon
 - **👋 Real-time hand tracking** using MediaPipe Hands
 - **🤲 Multi-hand support** - Tracks up to 2 hands simultaneously with ripples from each
 - **📹 Minimal Camera View** - Tiny camera feed in top-left corner with hover zoom effect
@@ -60,22 +63,33 @@ Then open your browser and navigate to: `http://localhost:8000`
 
 ## How It Works
 
-### Ocean Perspective View
-The app creates a realistic ocean scene with:
-- **Sky gradient** - Beautiful gradient from deep blue at top to light blue at horizon
-- **Horizon line** - Clear separation between sky and ocean at 35% from top
-- **Sun glow** - Warm atmospheric glow near the horizon
-- **Subtle clouds** - Animated cloud patterns in the sky
-- **Perspective depth** - Waves appear smaller and denser near the horizon, larger in foreground
+### True 3D Ocean Rendering
+The ocean is a real 3D mesh rendered in WebGL:
+- **Mesh Geometry** - 100x100 vertex grid (10,201 vertices) forming the ocean surface
+- **Vertex Shader** - Displaces each vertex based on wave functions in 3D space
+- **3D Camera** - Perspective projection with adjustable FOV looking down at the ocean
+- **Real Depth** - Proper depth testing and z-buffering for authentic 3D appearance
 
-### Ocean Simulation
-The ocean background uses WebGL shaders to create:
-- **Base waves** - Continuous animated water surface with perspective-adjusted frequencies
-- **Dynamic ripples** - Physics-based ripple propagation with perspective scaling
-- **Realistic colors** - Gradient from deep water to shallow water with foam on peaks
-- **Atmospheric perspective** - Water darkens toward horizon for depth perception
-- **Sky reflection** - Horizon area reflects the sky for added realism
-- **Shimmer effects** - Light reflection simulation stronger in foreground
+### Advanced Wave System
+Multiple wave frequencies combine for realistic motion:
+- **Layered Waves** - 4 different sine waves with varying frequencies and speeds
+- **Vertex Displacement** - Each vertex moves up/down based on wave calculations
+- **Normal Calculation** - Per-vertex normals computed for proper lighting
+- **Dynamic Animation** - Continuous wave motion creates living, breathing ocean
+
+### Realistic Lighting Model
+- **Directional Light** - Simulated sun from upper right casting light across water
+- **Diffuse Shading** - Wave slopes receive different amounts of light
+- **Specular Highlights** - Bright sun reflections on wave peaks
+- **Fresnel Effect** - Water reflects sky more at shallow viewing angles
+- **Distance Fog** - Far water blends into horizon for atmospheric depth
+
+### 3D Interactive Ripples
+Hand-triggered ripples are real geometric deformations:
+- **Vertex Deformation** - Ripples displace actual mesh vertices in 3D
+- **Radial Propagation** - Ripples spread outward from hand position
+- **Natural Decay** - Exponential falloff over distance and time
+- **Multi-ripple Support** - Up to 50 simultaneous ripples can interact
 
 ### Hand Movement Detection
 The app tracks your hand position in 3D space and:

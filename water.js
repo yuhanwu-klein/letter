@@ -1,4 +1,4 @@
-// WebGL Water Simulation with Ripple Effects
+// 3D Ocean Water Simulation with WebGL
 class WaterSimulation {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -13,11 +13,16 @@ class WaterSimulation {
         this.maxRipples = 50;
         this.time = 0;
 
+        // Ocean mesh parameters
+        this.gridSize = 100; // 100x100 grid for ocean surface
+        this.oceanScale = 50.0; // Size of ocean in world units
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
         this.initShaders();
         this.initBuffers();
+        this.initMatrices();
         this.animate();
     }
 
@@ -25,172 +30,287 @@ class WaterSimulation {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        this.updateProjectionMatrix();
+    }
+
+    initMatrices() {
+        // Camera setup
+        this.cameraPos = [0, 5, 8];
+        this.cameraTarget = [0, 0, -10];
+        this.cameraUp = [0, 1, 0];
+
+        this.updateProjectionMatrix();
+        this.updateViewMatrix();
+    }
+
+    updateProjectionMatrix() {
+        const aspect = this.canvas.width / this.canvas.height;
+        const fov = 60 * Math.PI / 180;
+        const near = 0.1;
+        const far = 1000;
+
+        this.projectionMatrix = this.perspective(fov, aspect, near, far);
+    }
+
+    updateViewMatrix() {
+        this.viewMatrix = this.lookAt(
+            this.cameraPos,
+            this.cameraTarget,
+            this.cameraUp
+        );
+    }
+
+    // Matrix helper functions
+    perspective(fov, aspect, near, far) {
+        const f = 1.0 / Math.tan(fov / 2);
+        const rangeInv = 1 / (near - far);
+
+        return [
+            f / aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (near + far) * rangeInv, -1,
+            0, 0, near * far * rangeInv * 2, 0
+        ];
+    }
+
+    lookAt(eye, center, up) {
+        const z = this.normalize([eye[0] - center[0], eye[1] - center[1], eye[2] - center[2]]);
+        const x = this.normalize(this.cross(up, z));
+        const y = this.cross(z, x);
+
+        return [
+            x[0], y[0], z[0], 0,
+            x[1], y[1], z[1], 0,
+            x[2], y[2], z[2], 0,
+            -this.dot(x, eye), -this.dot(y, eye), -this.dot(z, eye), 1
+        ];
+    }
+
+    normalize(v) {
+        const len = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        return [v[0] / len, v[1] / len, v[2] / len];
+    }
+
+    cross(a, b) {
+        return [
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0]
+        ];
+    }
+
+    dot(a, b) {
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     }
 
     initShaders() {
+        // Vertex shader for 3D ocean mesh
         const vertexShaderSource = `
-            attribute vec2 a_position;
-            varying vec2 v_uv;
+            attribute vec3 a_position;
+            uniform mat4 u_projection;
+            uniform mat4 u_view;
+            uniform float u_time;
+            uniform vec3 u_ripples[${this.maxRipples}];
+            uniform int u_rippleCount;
+
+            varying vec3 v_position;
+            varying vec3 v_normal;
+            varying float v_waveHeight;
+
+            // Wave function
+            float wave(vec2 pos, float time) {
+                float waveHeight = 0.0;
+
+                // Multiple wave frequencies for realistic ocean
+                waveHeight += sin(pos.x * 0.5 + time * 0.8) * 0.3;
+                waveHeight += sin(pos.x * 0.3 - pos.y * 0.4 + time * 0.6) * 0.4;
+                waveHeight += sin(pos.y * 0.7 + time * 1.2) * 0.2;
+                waveHeight += sin((pos.x + pos.y) * 0.2 + time * 0.5) * 0.5;
+
+                return waveHeight;
+            }
+
+            // Ripple function
+            float ripple(vec2 pos, vec2 center, float time) {
+                float dist = length(pos - center);
+                float rippleTime = time * 2.0;
+
+                if (rippleTime < 0.0) return 0.0;
+
+                float rippleFreq = 15.0;
+                float rippleSpeed = 5.0;
+                float decay = exp(-rippleTime * 1.2);
+
+                float r = sin((dist - rippleTime * rippleSpeed) * rippleFreq) * decay;
+                r *= smoothstep(8.0, 0.0, dist);
+
+                return r * 0.5;
+            }
 
             void main() {
-                v_uv = a_position * 0.5 + 0.5;
-                gl_Position = vec4(a_position, 0.0, 1.0);
+                vec3 pos = a_position;
+
+                // Calculate wave height
+                float waveH = wave(pos.xz, u_time);
+
+                // Add ripples from hand movement
+                for (int i = 0; i < ${this.maxRipples}; i++) {
+                    if (i >= u_rippleCount) break;
+
+                    vec2 rippleCenter = u_ripples[i].xy * 50.0 - 25.0; // Map to world coords
+                    float rippleTime = u_time - u_ripples[i].z;
+                    waveH += ripple(pos.xz, rippleCenter, rippleTime);
+                }
+
+                pos.y += waveH;
+                v_waveHeight = waveH;
+
+                // Calculate normal by sampling nearby points
+                float delta = 0.1;
+                float hL = wave(pos.xz + vec2(-delta, 0.0), u_time);
+                float hR = wave(pos.xz + vec2(delta, 0.0), u_time);
+                float hD = wave(pos.xz + vec2(0.0, -delta), u_time);
+                float hU = wave(pos.xz + vec2(0.0, delta), u_time);
+
+                vec3 normal = normalize(vec3(hL - hR, 2.0 * delta, hD - hU));
+                v_normal = normal;
+                v_position = pos;
+
+                gl_Position = u_projection * u_view * vec4(pos, 1.0);
             }
         `;
 
+        // Fragment shader with lighting
         const fragmentShaderSource = `
             precision mediump float;
 
-            varying vec2 v_uv;
+            varying vec3 v_position;
+            varying vec3 v_normal;
+            varying float v_waveHeight;
+
             uniform float u_time;
-            uniform vec2 u_resolution;
-            uniform vec3 u_ripples[${this.maxRipples}];
-            uniform int u_rippleCount;
+            uniform vec3 u_cameraPos;
 
             // Sky colors
             vec3 skyTop = vec3(0.4, 0.6, 0.95);
             vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
 
-            // Ocean colors
+            // Water colors
             vec3 deepWater = vec3(0.0, 0.2, 0.4);
-            vec3 shallowWater = vec3(0.0, 0.4, 0.6);
-            vec3 foam = vec3(0.7, 0.9, 1.0);
-
-            // Horizon position (0.0-1.0, where 0.35 means 35% from top)
-            float horizonY = 0.35;
-
-            float wave(vec2 uv, float time, float perspective) {
-                // Adjust frequency and amplitude based on perspective (distance)
-                float freq = 3.0 + perspective * 5.0;
-                float amp = 0.02 * (1.0 - perspective * 0.7);
-
-                float w1 = sin(uv.x * freq + time * 0.5) * amp;
-                float w2 = sin(uv.y * freq * 1.3 + time * 0.7) * amp;
-                float w3 = sin((uv.x + uv.y) * freq * 0.7 + time * 0.3) * amp;
-
-                return w1 + w2 + w3;
-            }
-
-            float ripple(vec2 uv, vec2 center, float time, float strength, float perspective) {
-                float dist = length(uv - center);
-                float rippleTime = time * 2.0;
-
-                if (rippleTime < 0.0) return 0.0;
-
-                float rippleFreq = 20.0;
-                float rippleSpeed = 3.0;
-                float decay = exp(-rippleTime * 1.5);
-
-                // Scale ripple effect by perspective
-                float r = sin((dist - rippleTime * rippleSpeed) * rippleFreq) * decay * strength;
-                r *= smoothstep(0.5, 0.0, dist);
-                r *= (1.0 - perspective * 0.5); // Reduce ripple visibility at horizon
-
-                return r * 0.3;
-            }
+            vec3 shallowWater = vec3(0.0, 0.5, 0.7);
+            vec3 foam = vec3(0.8, 0.95, 1.0);
 
             void main() {
-                vec2 uv = v_uv;
+                // Lighting setup
+                vec3 lightDir = normalize(vec3(0.5, 0.8, 0.3));
+                vec3 viewDir = normalize(u_cameraPos - v_position);
 
-                // Determine if we're in sky or water region
-                if (uv.y < horizonY) {
-                    // SKY REGION
-                    // Create gradient from top to horizon
-                    float skyMix = uv.y / horizonY;
-                    vec3 skyColor = mix(skyTop, skyHorizon, skyMix);
+                // Diffuse lighting
+                float diffuse = max(dot(v_normal, lightDir), 0.0);
 
-                    // Add some subtle clouds
-                    float clouds = sin(uv.x * 8.0 + u_time * 0.1) * sin(uv.y * 12.0 + u_time * 0.15);
-                    clouds = clouds * 0.05 + 0.05;
-                    skyColor += vec3(clouds);
+                // Specular highlights (sun reflection)
+                vec3 reflectDir = reflect(-lightDir, v_normal);
+                float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
 
-                    // Add sun glow near horizon
-                    float sunGlow = smoothstep(0.3, 0.0, length(uv - vec2(0.5, horizonY)));
-                    skyColor += vec3(sunGlow * 0.2, sunGlow * 0.15, sunGlow * 0.05);
+                // Fresnel effect (water reflects more at grazing angles)
+                float fresnel = pow(1.0 - max(dot(viewDir, v_normal), 0.0), 3.0);
 
-                    gl_FragColor = vec4(skyColor, 1.0);
-                } else {
-                    // OCEAN REGION
-                    // Perspective calculation - closer to horizon = further away
-                    float distFromHorizon = (uv.y - horizonY) / (1.0 - horizonY);
-                    float perspective = 1.0 - distFromHorizon;
+                // Base water color depends on depth/wave height
+                vec3 waterColor = mix(deepWater, shallowWater, v_waveHeight * 2.0 + 0.5);
 
-                    // Adjust UV for aspect ratio
-                    vec2 oceanUV = uv;
-                    oceanUV.x *= u_resolution.x / u_resolution.y;
-
-                    // Apply perspective stretch to create depth
-                    oceanUV.y = horizonY + (uv.y - horizonY) / (1.0 + perspective * 2.0);
-
-                    // Base wave animation with perspective
-                    float waves = wave(oceanUV, u_time, perspective);
-
-                    // Add ripples from hand movement
-                    float rippleEffect = 0.0;
-                    for (int i = 0; i < ${this.maxRipples}; i++) {
-                        if (i >= u_rippleCount) break;
-
-                        vec2 ripplePos = u_ripples[i].xy;
-                        ripplePos.x *= u_resolution.x / u_resolution.y;
-
-                        // Map ripple position to perspective space
-                        float ripplePerspective = 1.0 - (ripplePos.y - horizonY) / (1.0 - horizonY);
-                        ripplePos.y = horizonY + (ripplePos.y - horizonY) / (1.0 + ripplePerspective * 2.0);
-
-                        float rippleTime = u_time - u_ripples[i].z;
-                        rippleEffect += ripple(oceanUV, ripplePos, rippleTime, 1.0, perspective);
-                    }
-
-                    // Combine waves and ripples
-                    float height = waves + rippleEffect;
-
-                    // Calculate color based on wave height and distance
-                    vec3 waterColor = mix(deepWater, shallowWater, height * 10.0 + 0.5);
-
-                    // Darken water near horizon (atmospheric perspective)
-                    waterColor = mix(waterColor, deepWater, perspective * 0.5);
-
-                    // Add foam/highlights on wave peaks
-                    if (height > 0.03) {
-                        waterColor = mix(waterColor, foam, (height - 0.03) * 15.0);
-                    }
-
-                    // Add shimmer that's stronger in foreground
-                    float shimmer = sin(oceanUV.x * 50.0 + u_time * 3.0) * sin(oceanUV.y * 50.0 + u_time * 2.5);
-                    shimmer = shimmer * 0.1 + 0.9;
-                    shimmer = mix(shimmer, 1.0, perspective * 0.7);
-                    waterColor *= shimmer;
-
-                    // Reflection of sky at horizon
-                    float horizonReflection = smoothstep(0.0, 0.2, perspective);
-                    waterColor = mix(waterColor, skyHorizon * 0.6, horizonReflection * 0.3);
-
-                    gl_FragColor = vec4(waterColor, 1.0);
+                // Add foam on wave peaks
+                if (v_waveHeight > 0.3) {
+                    float foamAmount = smoothstep(0.3, 0.6, v_waveHeight);
+                    waterColor = mix(waterColor, foam, foamAmount);
                 }
+
+                // Apply lighting
+                waterColor *= (0.3 + 0.7 * diffuse);
+
+                // Add specular highlights
+                waterColor += vec3(1.0) * spec * 0.8;
+
+                // Mix with sky color based on Fresnel
+                vec3 skyColor = mix(skyHorizon, skyTop, 0.5);
+                waterColor = mix(waterColor, skyColor, fresnel * 0.3);
+
+                // Distance fog
+                float dist = length(v_position.xz);
+                float fog = smoothstep(20.0, 50.0, dist);
+                waterColor = mix(waterColor, skyHorizon, fog);
+
+                gl_FragColor = vec4(waterColor, 1.0);
             }
         `;
 
-        const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
-        const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+        // Sky background shader (simple)
+        const skyVertexSource = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_position * 0.5 + 0.5;
+                gl_Position = vec4(a_position, 0.999, 1.0); // Far back
+            }
+        `;
 
-        this.program = this.gl.createProgram();
-        this.gl.attachShader(this.program, vertexShader);
-        this.gl.attachShader(this.program, fragmentShader);
-        this.gl.linkProgram(this.program);
+        const skyFragmentSource = `
+            precision mediump float;
+            varying vec2 v_uv;
+            uniform float u_time;
 
-        if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-            console.error('Program link error:', this.gl.getProgramInfoLog(this.program));
-            return;
-        }
+            void main() {
+                vec3 skyTop = vec3(0.4, 0.6, 0.95);
+                vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
 
-        this.gl.useProgram(this.program);
+                float gradient = v_uv.y;
+                vec3 skyColor = mix(skyHorizon, skyTop, gradient);
 
-        // Get attribute and uniform locations
-        this.positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
-        this.timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
-        this.resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
-        this.ripplesLocation = this.gl.getUniformLocation(this.program, 'u_ripples');
-        this.rippleCountLocation = this.gl.getUniformLocation(this.program, 'u_rippleCount');
+                // Add subtle clouds
+                float clouds = sin(v_uv.x * 8.0 + u_time * 0.1) * sin(v_uv.y * 12.0 + u_time * 0.15);
+                clouds = clouds * 0.05 + 0.05;
+                skyColor += vec3(clouds);
+
+                // Sun glow near horizon
+                float sunGlow = smoothstep(0.3, 0.0, length(v_uv - vec2(0.5, 0.3)));
+                skyColor += vec3(sunGlow * 0.2, sunGlow * 0.15, sunGlow * 0.05);
+
+                gl_FragColor = vec4(skyColor, 1.0);
+            }
+        `;
+
+        // Compile shaders
+        const waterVertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
+        const waterFragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+        const skyVertexShader = this.createShader(this.gl.VERTEX_SHADER, skyVertexSource);
+        const skyFragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, skyFragmentSource);
+
+        // Create programs
+        this.waterProgram = this.createProgram(waterVertexShader, waterFragmentShader);
+        this.skyProgram = this.createProgram(skyVertexShader, skyFragmentShader);
+
+        // Get attribute and uniform locations for water
+        this.waterAttribs = {
+            position: this.gl.getAttribLocation(this.waterProgram, 'a_position')
+        };
+
+        this.waterUniforms = {
+            projection: this.gl.getUniformLocation(this.waterProgram, 'u_projection'),
+            view: this.gl.getUniformLocation(this.waterProgram, 'u_view'),
+            time: this.gl.getUniformLocation(this.waterProgram, 'u_time'),
+            ripples: this.gl.getUniformLocation(this.waterProgram, 'u_ripples'),
+            rippleCount: this.gl.getUniformLocation(this.waterProgram, 'u_rippleCount'),
+            cameraPos: this.gl.getUniformLocation(this.waterProgram, 'u_cameraPos')
+        };
+
+        // Get locations for sky
+        this.skyAttribs = {
+            position: this.gl.getAttribLocation(this.skyProgram, 'a_position')
+        };
+
+        this.skyUniforms = {
+            time: this.gl.getUniformLocation(this.skyProgram, 'u_time')
+        };
     }
 
     createShader(type, source) {
@@ -207,17 +327,75 @@ class WaterSimulation {
         return shader;
     }
 
+    createProgram(vertexShader, fragmentShader) {
+        const program = this.gl.createProgram();
+        this.gl.attachShader(program, vertexShader);
+        this.gl.attachShader(program, fragmentShader);
+        this.gl.linkProgram(program);
+
+        if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+            console.error('Program link error:', this.gl.getProgramInfoLog(program));
+            return null;
+        }
+
+        return program;
+    }
+
     initBuffers() {
-        const positions = new Float32Array([
+        // Create ocean mesh grid
+        const vertices = [];
+        const indices = [];
+
+        const halfSize = this.oceanScale / 2;
+        const step = this.oceanScale / this.gridSize;
+
+        // Generate vertices
+        for (let z = 0; z <= this.gridSize; z++) {
+            for (let x = 0; x <= this.gridSize; x++) {
+                vertices.push(
+                    x * step - halfSize,  // x
+                    0,                     // y (will be displaced by waves)
+                    z * step - halfSize    // z
+                );
+            }
+        }
+
+        // Generate indices for triangles
+        for (let z = 0; z < this.gridSize; z++) {
+            for (let x = 0; x < this.gridSize; x++) {
+                const topLeft = z * (this.gridSize + 1) + x;
+                const topRight = topLeft + 1;
+                const bottomLeft = (z + 1) * (this.gridSize + 1) + x;
+                const bottomRight = bottomLeft + 1;
+
+                // Two triangles per quad
+                indices.push(topLeft, bottomLeft, topRight);
+                indices.push(topRight, bottomLeft, bottomRight);
+            }
+        }
+
+        this.vertexCount = indices.length;
+
+        // Create buffers
+        this.vertexBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+
+        this.indexBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.gl.STATIC_DRAW);
+
+        // Sky quad (fullscreen)
+        const skyVertices = new Float32Array([
             -1, -1,
              1, -1,
             -1,  1,
              1,  1,
         ]);
 
-        this.positionBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+        this.skyBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.skyBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, skyVertices, this.gl.STATIC_DRAW);
     }
 
     addRipple(x, y) {
@@ -237,18 +415,59 @@ class WaterSimulation {
     animate() {
         this.time += 0.016; // ~60fps
 
-        // Clear canvas
-        this.gl.clearColor(0.0, 0.2, 0.4, 1.0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        // Enable depth testing
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.depthFunc(this.gl.LEQUAL);
 
-        // Set up attributes
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-        this.gl.enableVertexAttribArray(this.positionLocation);
-        this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+        // Clear canvas
+        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+        // Render sky first
+        this.renderSky();
+
+        // Render water
+        this.renderWater();
+
+        // Clean up old ripples (older than 2 seconds)
+        this.ripples = this.ripples.filter(r => (this.time - r[2]) < 2.0);
+
+        requestAnimationFrame(() => this.animate());
+    }
+
+    renderSky() {
+        this.gl.useProgram(this.skyProgram);
+        this.gl.disable(this.gl.DEPTH_TEST);
+
+        // Bind sky buffer
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.skyBuffer);
+        this.gl.enableVertexAttribArray(this.skyAttribs.position);
+        this.gl.vertexAttribPointer(this.skyAttribs.position, 2, this.gl.FLOAT, false, 0, 0);
 
         // Set uniforms
-        this.gl.uniform1f(this.timeLocation, this.time);
-        this.gl.uniform2f(this.resolutionLocation, this.canvas.width, this.canvas.height);
+        this.gl.uniform1f(this.skyUniforms.time, this.time);
+
+        // Draw
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    renderWater() {
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.useProgram(this.waterProgram);
+
+        // Bind vertex buffer
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.enableVertexAttribArray(this.waterAttribs.position);
+        this.gl.vertexAttribPointer(this.waterAttribs.position, 3, this.gl.FLOAT, false, 0, 0);
+
+        // Bind index buffer
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+        // Set uniforms
+        this.gl.uniformMatrix4fv(this.waterUniforms.projection, false, this.projectionMatrix);
+        this.gl.uniformMatrix4fv(this.waterUniforms.view, false, this.viewMatrix);
+        this.gl.uniform1f(this.waterUniforms.time, this.time);
+        this.gl.uniform3fv(this.waterUniforms.cameraPos, this.cameraPos);
 
         // Pass ripple data
         const rippleData = new Float32Array(this.maxRipples * 3);
@@ -257,16 +476,11 @@ class WaterSimulation {
             rippleData[i * 3 + 1] = this.ripples[i][1];
             rippleData[i * 3 + 2] = this.ripples[i][2];
         }
-        this.gl.uniform3fv(this.ripplesLocation, rippleData);
-        this.gl.uniform1i(this.rippleCountLocation, this.ripples.length);
+        this.gl.uniform3fv(this.waterUniforms.ripples, rippleData);
+        this.gl.uniform1i(this.waterUniforms.rippleCount, this.ripples.length);
 
         // Draw
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-
-        // Clean up old ripples (older than 2 seconds)
-        this.ripples = this.ripples.filter(r => (this.time - r[2]) < 2.0);
-
-        requestAnimationFrame(() => this.animate());
+        this.gl.drawElements(this.gl.TRIANGLES, this.vertexCount, this.gl.UNSIGNED_SHORT, 0);
     }
 
     getRippleCount() {
