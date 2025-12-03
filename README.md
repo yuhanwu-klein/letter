@@ -4,13 +4,14 @@ A mesmerizing web-based hand tracking application that combines MediaPipe Hands 
 
 ## Features
 
-- **🌅 Ocean Perspective View** - Immersive ocean scene with sky, horizon, and perspective depth
+- **🌅 Ocean Perspective View** - Immersive full-screen ocean scene with sky, horizon, and perspective depth
 - **🌊 Realistic Ocean Simulation** - Beautiful WebGL-rendered water with dynamic waves
 - **☁️ Atmospheric Sky** - Gradient sky with subtle clouds and sun glow at horizon
 - **💧 Interactive Ripples** - Hand movements generate realistic water ripples with perspective scaling
 - **👋 Real-time hand tracking** using MediaPipe Hands
 - **🤲 Multi-hand support** - tracks up to 2 hands simultaneously with ripples from each
-- **✨ Visual feedback** with skeleton overlay on compact video feed
+- **📹 Minimalist Camera View** - Small camera feed in top-left corner with hover zoom effect
+- **✨ Visual feedback** - Skeleton overlay on camera feed showing tracked hand landmarks
 - **🎨 Color-coded hands** - Left hand (green), Right hand (red)
 - **📊 Live statistics** - FPS counter, hand count, and active ripple count
 - **📍 Landmark coordinates** - Real-time display of key hand landmarks (wrist, fingertips)

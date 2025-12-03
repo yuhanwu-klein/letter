@@ -24,11 +24,11 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.75);
     border-radius: 20px;
-    padding: 25px;
+    padding: 30px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 1;
@@ -59,14 +59,23 @@ h1 {
 }
 
 .video-container {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto 20px;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 200px;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    border: 3px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    z-index: 100;
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.video-container:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
 }
 
 #video {
@@ -132,23 +141,24 @@ button:active {
 }
 
 .landmarks-info {
-    background: #f0f8ff;
-    padding: 15px;
+    background: rgba(240, 248, 255, 0.9);
+    padding: 20px;
     border-radius: 10px;
-    margin-top: 15px;
-    border: 2px solid rgba(0, 105, 148, 0.2);
+    margin-top: 20px;
+    border: 2px solid rgba(0, 105, 148, 0.3);
 }
 
 .landmarks-info h3 {
     color: #006994;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-size: 1.2em;
 }
 
 #landmarksData {
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 13px;
     color: #333;
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
 }
 
@@ -166,6 +176,7 @@ button:active {
 
     .container {
         padding: 15px;
+        margin-top: 60px;
     }
 
     h1 {
@@ -173,7 +184,9 @@ button:active {
     }
 
     .video-container {
-        max-width: 100%;
+        width: 150px;
+        top: 10px;
+        left: 10px;
     }
 
     .controls {
