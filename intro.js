@@ -12,6 +12,8 @@ class WhaleFallParticles {
         // Mathematical shapes
         this.shapes = [
             { name: 'WHALE FALL', fn: this.whaleFallShape.bind(this) },
+            { name: 'WHALE', fn: this.whaleShape.bind(this) },
+            { name: 'FISH SCHOOL', fn: this.fishSchoolShape.bind(this) },
             { name: 'FRACTAL', fn: this.fractalShape.bind(this) },
             { name: 'MÖBIUS STRIP', fn: this.mobiusStripShape.bind(this) },
             { name: 'PENROSE TRIANGLE', fn: this.penroseTriangleShape.bind(this) },
@@ -73,22 +75,46 @@ class WhaleFallParticles {
             velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
             velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
 
-            // Cyan glow color
-            colors[i3] = 0.0;
-            colors[i3 + 1] = 1.0;
-            colors[i3 + 2] = 1.0;
+            // Colorful ocean colors - varied like fish and sea life
+            const colorType = Math.random();
+            if (colorType < 0.3) {
+                // Cyan/turquoise - tropical fish
+                colors[i3] = 0.0 + Math.random() * 0.3;
+                colors[i3 + 1] = 0.8 + Math.random() * 0.2;
+                colors[i3 + 2] = 0.9 + Math.random() * 0.1;
+            } else if (colorType < 0.5) {
+                // Deep blue - whale colors
+                colors[i3] = 0.0 + Math.random() * 0.2;
+                colors[i3 + 1] = 0.3 + Math.random() * 0.4;
+                colors[i3 + 2] = 0.7 + Math.random() * 0.3;
+            } else if (colorType < 0.65) {
+                // Purple/violet - deep sea creatures
+                colors[i3] = 0.5 + Math.random() * 0.3;
+                colors[i3 + 1] = 0.1 + Math.random() * 0.3;
+                colors[i3 + 2] = 0.8 + Math.random() * 0.2;
+            } else if (colorType < 0.8) {
+                // Green/teal - sea life
+                colors[i3] = 0.1 + Math.random() * 0.3;
+                colors[i3 + 1] = 0.7 + Math.random() * 0.3;
+                colors[i3 + 2] = 0.5 + Math.random() * 0.3;
+            } else {
+                // Orange/coral - tropical accent
+                colors[i3] = 1.0;
+                colors[i3 + 1] = 0.4 + Math.random() * 0.3;
+                colors[i3 + 2] = 0.1 + Math.random() * 0.2;
+            }
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-        // Glowing particle material
+        // Glowing particle material with varied sizes
         const material = new THREE.PointsMaterial({
-            size: 0.15,
+            size: 0.2,
             vertexColors: true,
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.9,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             sizeAttenuation: true
@@ -112,6 +138,54 @@ class WhaleFallParticles {
             x: r * Math.cos(theta) * Math.sin(phi),
             y: 30 - t * 60 + Math.sin(t * 20) * 3, // Falling motion
             z: r * Math.sin(theta) * Math.sin(phi)
+        };
+    }
+
+    // Organic Shape: Whale
+    whaleShape(t) {
+        const u = t * Math.PI * 2;
+        const bodyLength = 25;
+        const bodyWidth = 8;
+        const bodyHeight = 6;
+
+        // Main body using parametric curve
+        const x = bodyLength * Math.cos(u) * 0.5;
+        const y = bodyHeight * Math.sin(u * 2) * (1 - Math.abs(Math.cos(u))) + Math.sin(u * 4) * 2;
+        const z = bodyWidth * Math.sin(u) * (1 - Math.abs(Math.cos(u)));
+
+        // Add fins and tail details
+        const finOffset = Math.sin(t * 20) * 1.5;
+        const tailSway = Math.sin(t * 10) * 3;
+
+        return {
+            x: x + tailSway,
+            y: y + finOffset,
+            z: z
+        };
+    }
+
+    // Organic Shape: Fish School
+    fishSchoolShape(t) {
+        // Multiple fish swimming in formation
+        const fishIndex = Math.floor(t * 8); // 8 fish in the school
+        const localT = (t * 8) % 1;
+
+        const angle = (fishIndex / 8) * Math.PI * 2;
+        const radius = 12 + Math.sin(localT * Math.PI) * 3;
+        const swimPhase = localT * Math.PI * 4;
+
+        // Fish body position
+        const x = radius * Math.cos(angle) + Math.sin(swimPhase) * 4;
+        const y = Math.sin(swimPhase * 0.5) * 5 + Math.cos(localT * Math.PI) * 3;
+        const z = radius * Math.sin(angle) + Math.cos(swimPhase) * 2;
+
+        // Add swimming motion
+        const swimWave = Math.sin(t * 50) * 0.5;
+
+        return {
+            x: x + swimWave,
+            y: y,
+            z: z - swimWave * 0.5
         };
     }
 
