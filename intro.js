@@ -283,7 +283,9 @@ class WhaleFallParticles {
 
         // Graceful morphing - like cosmic evolution
         if (this.morphProgress < 1) {
-            this.morphProgress += 0.008; // Slower, more elegant morphing
+            // Faster morphing during transition to whale shape
+            const morphSpeed = this.isTransitioning ? 0.015 : 0.008;
+            this.morphProgress += morphSpeed;
             const easeProgress = this.easeInOutQuintic(this.morphProgress);
 
             for (let i = 0; i < this.particleCount; i++) {
@@ -296,6 +298,9 @@ class WhaleFallParticles {
         }
 
         // Grand cosmic motion - from quantum uncertainty to galaxy spirals
+        // Reduce motion during transition to keep whale shape stable
+        const motionScale = this.isTransitioning ? 0.1 : 1.0;
+
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
             const t = i / this.particleCount;
@@ -303,20 +308,20 @@ class WhaleFallParticles {
             // Spiral galaxy motion - grand and elegant
             const spiralPhase = time * 0.0003 + t * Math.PI * 4;
             const spiralRadius = Math.sqrt(positions[i3] * positions[i3] + positions[i3 + 2] * positions[i3 + 2]);
-            const spiralX = Math.cos(spiralPhase) * 0.015;
-            const spiralZ = Math.sin(spiralPhase) * 0.015;
+            const spiralX = Math.cos(spiralPhase) * 0.015 * motionScale;
+            const spiralZ = Math.sin(spiralPhase) * 0.015 * motionScale;
 
             // Multi-layered cosmic waves - majestic and flowing
-            const cosmicWave1 = Math.sin(time * 0.0004 + i * 0.005) * 0.08;
-            const cosmicWave2 = Math.cos(time * 0.0006 + i * 0.003) * 0.06;
-            const cosmicWave3 = Math.sin(time * 0.0005 + i * 0.007) * 0.05;
+            const cosmicWave1 = Math.sin(time * 0.0004 + i * 0.005) * 0.08 * motionScale;
+            const cosmicWave2 = Math.cos(time * 0.0006 + i * 0.003) * 0.06 * motionScale;
+            const cosmicWave3 = Math.sin(time * 0.0005 + i * 0.007) * 0.05 * motionScale;
 
             // Depth-based motion - particles at different depths move differently
             const depth = Math.abs(positions[i3 + 2]) / 30.0;
-            const depthMotion = Math.sin(time * 0.0008 + depth * Math.PI) * 0.04;
+            const depthMotion = Math.sin(time * 0.0008 + depth * Math.PI) * 0.04 * motionScale;
 
             // Quantum flickering - microscopic uncertainty
-            const quantumFlicker = (Math.random() - 0.5) * 0.003;
+            const quantumFlicker = (Math.random() - 0.5) * 0.003 * motionScale;
 
             // Apply grand cosmic motion
             positions[i3] += cosmicWave1 + spiralX + quantumFlicker;
@@ -328,25 +333,35 @@ class WhaleFallParticles {
             positions[i3 + 1] += velocities[i3 + 1] * 1.2;
             positions[i3 + 2] += velocities[i3 + 2] * 1.2;
 
-            // Smooth damping - graceful deceleration
-            velocities[i3] *= 0.985;
-            velocities[i3 + 1] *= 0.985;
-            velocities[i3 + 2] *= 0.985;
+            // Smooth damping - graceful deceleration (stronger during transition)
+            const damping = this.isTransitioning ? 0.95 : 0.985;
+            velocities[i3] *= damping;
+            velocities[i3 + 1] *= damping;
+            velocities[i3 + 2] *= damping;
 
-            // Stardust twinkling - color intensity variation
-            const twinkle = Math.sin(time * 0.002 + i * 0.1) * 0.15 + 0.85;
-            colors[i3] *= twinkle;
-            colors[i3 + 1] *= twinkle;
-            colors[i3 + 2] *= twinkle;
+            // Stardust twinkling - color intensity variation (skip during transition)
+            if (!this.isTransitioning) {
+                const twinkle = Math.sin(time * 0.002 + i * 0.1) * 0.15 + 0.85;
+                colors[i3] *= twinkle;
+                colors[i3 + 1] *= twinkle;
+                colors[i3 + 2] *= twinkle;
+            }
         }
 
         this.particles.geometry.attributes.position.needsUpdate = true;
         this.particles.geometry.attributes.color.needsUpdate = true;
 
-        // Majestic rotation - like the universe itself
-        this.particles.rotation.y = Math.sin(time * 0.00008) * 0.5 + time * 0.00005;
-        this.particles.rotation.x = Math.cos(time * 0.00012) * 0.3;
-        this.particles.rotation.z = Math.sin(time * 0.00006) * 0.15;
+        // Majestic rotation - like the universe itself (slow down during transition)
+        if (!this.isTransitioning) {
+            this.particles.rotation.y = Math.sin(time * 0.00008) * 0.5 + time * 0.00005;
+            this.particles.rotation.x = Math.cos(time * 0.00012) * 0.3;
+            this.particles.rotation.z = Math.sin(time * 0.00006) * 0.15;
+        } else {
+            // Gentle whale swimming motion during transition
+            const swimPhase = time * 0.001;
+            this.particles.rotation.y = Math.sin(swimPhase) * 0.1; // Gentle left-right sway
+            this.particles.rotation.z = Math.cos(swimPhase * 0.7) * 0.05; // Slight roll
+        }
     }
 
     easeInOutQuintic(t) {
@@ -372,10 +387,34 @@ class WhaleFallParticles {
         // Fade out background and transition
         document.body.classList.add('transitioning');
 
+        // Morph to whale shape for underwater scene
+        this.morphToWhaleForTransition();
+
         // Transition to underwater scene after animation completes (3 seconds)
         setTimeout(() => {
             window.location.href = 'ocean.html';
         }, 3000);
+    }
+
+    morphToWhaleForTransition() {
+        // Find whale shape index
+        const whaleIndex = this.shapes.findIndex(s => s.name === 'WHALE');
+        const whaleShape = this.shapes[whaleIndex].fn;
+
+        // Calculate target positions for whale shape
+        for (let i = 0; i < this.particleCount; i++) {
+            const pos = whaleShape(i / this.particleCount);
+
+            // Position whale in underwater scene
+            // Rotate whale to swim horizontally (like it's swimming in the ocean)
+            // Scale up for better visibility
+            const scale = 1.5;
+            this.targetPositions[i * 3] = pos.x * scale; // X position
+            this.targetPositions[i * 3 + 1] = (pos.z * scale) - 25; // Use Z as Y (rotate 90 degrees) and lower
+            this.targetPositions[i * 3 + 2] = (-pos.y * scale) - 5; // Use -Y as Z (swimming away slightly)
+        }
+
+        this.morphProgress = 0;
     }
 
     setupAutoTrigger() {
@@ -447,14 +486,19 @@ class WhaleFallParticles {
             // Smooth easing for camera movement
             const easeProgress = this.easeInOutCubic(this.transitionProgress);
 
-            // Animate camera from sky (y=50, z=50) down to ocean (y=-30, z=50)
+            // Animate camera descending into underwater scene
             const startY = 0;
-            const endY = -80;
+            const endY = -15; // Position above the whale to look down at it
             this.camera.position.y = startY + (endY - startY) * easeProgress;
 
-            // Tilt camera to look down
+            // Move camera slightly back to see whale better
+            const startZ = 50;
+            const endZ = 60;
+            this.camera.position.z = startZ + (endZ - startZ) * easeProgress;
+
+            // Tilt camera to look down at whale
             const startRotation = 0;
-            const endRotation = Math.PI * 0.3; // Tilt down 54 degrees
+            const endRotation = Math.PI * 0.15; // Tilt down 27 degrees to view whale
             this.camera.rotation.x = startRotation + (endRotation - startRotation) * easeProgress;
 
             // Transition particles to light blue ocean color
