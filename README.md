@@ -1,16 +1,18 @@
-# Hand Movement Tracker
+# 🌊 Ocean Hand Tracker - Interactive Water Ripples
 
-A web-based hand tracking application using MediaPipe Hands that tracks hand movements through your webcam in real-time.
+A mesmerizing web-based hand tracking application that combines MediaPipe Hands with realistic WebGL water simulation. Your hand movements create beautiful ripples in a virtual ocean!
 
 ## Features
 
-- **Real-time hand tracking** using MediaPipe Hands
-- **Multi-hand support** - tracks up to 2 hands simultaneously
-- **Visual feedback** with skeleton overlay on video feed
-- **Color-coded hands** - Left hand (green), Right hand (red)
-- **Live statistics** - FPS counter and hand count
-- **Landmark coordinates** - Real-time display of key hand landmarks (wrist, fingertips)
-- **Start/Stop controls** - Toggle tracking on/off
+- **🌊 Realistic Ocean Simulation** - Beautiful WebGL-rendered water with dynamic waves
+- **💧 Interactive Ripples** - Hand movements generate realistic water ripples
+- **👋 Real-time hand tracking** using MediaPipe Hands
+- **🤲 Multi-hand support** - tracks up to 2 hands simultaneously with ripples from each
+- **✨ Visual feedback** with skeleton overlay on video feed
+- **🎨 Color-coded hands** - Left hand (green), Right hand (red)
+- **📊 Live statistics** - FPS counter, hand count, and active ripple count
+- **📍 Landmark coordinates** - Real-time display of key hand landmarks (wrist, fingertips)
+- **🎮 Start/Stop controls** - Toggle tracking on/off
 
 ## How to Use
 
@@ -19,7 +21,10 @@ A web-based hand tracking application using MediaPipe Hands that tracks hand mov
 1. Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 2. Allow camera access when prompted
 3. Show your hand(s) to the camera
-4. Watch the skeleton tracking overlay appear on your hands!
+4. Move your hands to create beautiful ripples in the water!
+5. Watch as the skeleton tracking overlay appears on your hands while ripples spread across the ocean
+
+**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects!
 
 ### Option 2: Using a Local Server
 
@@ -46,10 +51,34 @@ Then open your browser and navigate to: `http://localhost:8000`
 
 ## Technology Stack
 
-- **MediaPipe Hands** - Google's hand tracking solution
-- **Vanilla JavaScript** - No frameworks required
-- **HTML5 Canvas** - For drawing hand landmarks
+- **WebGL** - Hardware-accelerated ocean and ripple rendering with custom shaders
+- **MediaPipe Hands** - Google's machine learning hand tracking solution
+- **Vanilla JavaScript** - No frameworks required, pure performance
+- **HTML5 Canvas** - For drawing hand landmarks overlay
 - **WebRTC** - For webcam access
+
+## How It Works
+
+### Ocean Simulation
+The ocean background uses WebGL shaders to create:
+- **Base waves** - Continuous animated water surface with multiple wave frequencies
+- **Dynamic ripples** - Physics-based ripple propagation with decay over time
+- **Realistic colors** - Gradient from deep water to shallow water with foam on peaks
+- **Shimmer effects** - Light reflection simulation for added realism
+
+### Hand Movement Detection
+The app tracks your hand position in 3D space and:
+1. Detects hand movement by comparing positions between frames
+2. Triggers ripples when movement exceeds a threshold (prevents noise)
+3. Creates ripples at the palm center and all 5 fingertips for dramatic effect
+4. Maps hand coordinates from camera space to screen space for accurate ripple placement
+
+### Ripple Physics
+Each ripple:
+- Propagates outward at realistic wave speed
+- Decays exponentially over ~2 seconds
+- Interferes with other ripples naturally
+- Respects distance falloff for realistic spreading
 
 ## Controls
 

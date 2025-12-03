@@ -6,26 +6,41 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #001529;
     min-height: 100vh;
     padding: 20px;
     color: #333;
+    overflow-x: hidden;
+}
+
+/* WebGL Water Background */
+#waterCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
 }
 
 h1 {
     text-align: center;
-    color: #667eea;
+    color: #006994;
     margin-bottom: 10px;
     font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0, 105, 148, 0.3);
 }
 
 .info {
@@ -40,7 +55,7 @@ h1 {
 
 #status {
     font-weight: bold;
-    color: #764ba2;
+    color: #006994;
 }
 
 .video-container {
@@ -79,7 +94,7 @@ h1 {
 }
 
 button {
-    background: #667eea;
+    background: linear-gradient(135deg, #006994 0%, #0099cc 100%);
     color: white;
     border: none;
     padding: 12px 30px;
@@ -91,9 +106,9 @@ button {
 }
 
 button:hover {
-    background: #764ba2;
+    background: linear-gradient(135deg, #005577 0%, #0088bb 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 105, 148, 0.4);
 }
 
 button:active {
@@ -112,18 +127,19 @@ button:active {
 
 .stats span {
     font-weight: bold;
-    color: #667eea;
+    color: #006994;
 }
 
 .landmarks-info {
-    background: #f8f9fa;
+    background: #f0f8ff;
     padding: 20px;
     border-radius: 10px;
     margin-top: 20px;
+    border: 2px solid rgba(0, 105, 148, 0.2);
 }
 
 .landmarks-info h3 {
-    color: #667eea;
+    color: #006994;
     margin-bottom: 10px;
 }
 

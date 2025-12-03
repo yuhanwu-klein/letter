@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Movement Tracker</title>
+    <title>Ocean Hand Tracker - Interactive Waves</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- WebGL Water Background -->
+    <canvas id="waterCanvas"></canvas>
+
     <div class="container">
-        <h1>Hand Movement Tracker</h1>
+        <h1>🌊 Ocean Hand Tracker</h1>
         <div class="info">
-            <p>Show your hand(s) to the camera to track movement</p>
+            <p>Move your hands to create ripples in the water</p>
             <p id="status">Loading camera...</p>
         </div>
 
@@ -23,6 +26,7 @@
             <button id="toggleBtn">Stop Tracking</button>
             <div class="stats">
                 <p>Hands detected: <span id="handCount">0</span></p>
+                <p>Ripples: <span id="rippleCount">0</span></p>
                 <p>FPS: <span id="fps">0</span></p>
             </div>
         </div>
@@ -36,6 +40,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="water.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

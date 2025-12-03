@@ -3,6 +3,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 const handCountEl = document.getElementById('handCount');
+const rippleCountEl = document.getElementById('rippleCount');
 const fpsEl = document.getElementById('fps');
 const toggleBtn = document.getElementById('toggleBtn');
 const landmarksDataEl = document.getElementById('landmarksData');
@@ -11,6 +12,10 @@ let isTracking = true;
 let lastTime = Date.now();
 let frameCount = 0;
 let fps = 0;
+
+// Track previous hand positions for movement detection
+let previousHandPositions = [];
+const movementThreshold = 0.02; // Minimum movement to trigger ripple
 
 // Initialize MediaPipe Hands
 const hands = new Hands({
@@ -41,8 +46,8 @@ const camera = new Camera(video, {
 
 // Start camera
 camera.start().then(() => {
-    statusEl.textContent = 'Camera ready! Show your hands';
-    statusEl.style.color = '#28a745';
+    statusEl.textContent = '🌊 Camera ready! Move your hands to create ripples';
+    statusEl.style.color = '#006994';
 }).catch((error) => {
     statusEl.textContent = 'Error: ' + error.message;
     statusEl.style.color = '#dc3545';
@@ -63,11 +68,47 @@ function onResults(results) {
     const handCount = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
     handCountEl.textContent = handCount;
 
+    // Track current hand positions
+    const currentHandPositions = [];
+
     // Draw results
     if (results.multiHandLandmarks) {
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
             const landmarks = results.multiHandLandmarks[i];
             const handedness = results.multiHandedness[i].label;
+
+            // Get palm center (landmark 0 - wrist)
+            const palmCenter = landmarks[0];
+            currentHandPositions.push({
+                x: palmCenter.x,
+                y: palmCenter.y,
+                handedness: handedness
+            });
+
+            // Check for movement and create ripples
+            if (waterSim && previousHandPositions[i]) {
+                const prevPos = previousHandPositions[i];
+                const dx = palmCenter.x - prevPos.x;
+                const dy = palmCenter.y - prevPos.y;
+                const movement = Math.sqrt(dx * dx + dy * dy);
+
+                // If hand moved significantly, create ripples
+                if (movement > movementThreshold) {
+                    // Map hand position to screen coordinates
+                    const screenX = palmCenter.x * window.innerWidth;
+                    const screenY = palmCenter.y * window.innerHeight;
+                    waterSim.addRipple(screenX, screenY);
+
+                    // Add ripples at fingertips for more dramatic effect
+                    const fingertips = [4, 8, 12, 16, 20]; // Thumb, index, middle, ring, pinky
+                    fingertips.forEach(tipIdx => {
+                        const tip = landmarks[tipIdx];
+                        const tipX = tip.x * window.innerWidth;
+                        const tipY = tip.y * window.innerHeight;
+                        waterSim.addRipple(tipX, tipY);
+                    });
+                }
+            }
 
             // Draw connections
             drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
@@ -88,6 +129,14 @@ function onResults(results) {
         }
     } else {
         landmarksDataEl.innerHTML = '<p style="color: #999;">No hands detected</p>';
+    }
+
+    // Update previous positions
+    previousHandPositions = currentHandPositions;
+
+    // Update ripple count
+    if (waterSim) {
+        rippleCountEl.textContent = waterSim.getRippleCount();
     }
 
     ctx.restore();
@@ -143,12 +192,14 @@ function updateFPS() {
 toggleBtn.addEventListener('click', () => {
     isTracking = !isTracking;
     toggleBtn.textContent = isTracking ? 'Stop Tracking' : 'Start Tracking';
-    toggleBtn.style.background = isTracking ? '#667eea' : '#dc3545';
+    toggleBtn.style.background = isTracking ? 'linear-gradient(135deg, #006994 0%, #0099cc 100%)' : '#dc3545';
 
     if (!isTracking) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         handCountEl.textContent = '0';
+        rippleCountEl.textContent = '0';
         landmarksDataEl.innerHTML = '<p style="color: #999;">Tracking stopped</p>';
+        previousHandPositions = [];
     }
 });
 
