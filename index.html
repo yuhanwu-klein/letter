@@ -10,16 +10,18 @@
     <!-- WebGL Water Background -->
     <canvas id="waterCanvas"></canvas>
 
+    <!-- Camera feed - only visible element -->
+    <div class="video-container">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <!-- Hidden UI container -->
     <div class="container">
         <h1>🌊 Ocean Hand Tracker</h1>
         <div class="info">
             <p>Move your hands to create ripples in the water</p>
             <p id="status">Loading camera...</p>
-        </div>
-
-        <div class="video-container">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
         </div>
 
         <div class="controls">
