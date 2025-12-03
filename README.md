@@ -1,12 +1,12 @@
-# 🐋 Whale Fall - Interactive Ocean Journey
+# 🌊 Letter From Deep Sea - Interactive Ocean Journey
 
-A mesmerizing two-part interactive experience combining Three.js particle systems with MediaPipe hand tracking. Journey from the abyss through a "whale fall" particle system, then dive into a realistic WebGL underwater simulation.
+A mesmerizing two-part interactive experience combining Three.js particle systems with MediaPipe hand tracking. Begin with "Letter From Deep Sea" - a message from the abyss told through particles, then dive into a realistic WebGL underwater simulation.
 
 ## 🌟 Experience Overview
 
-### Part 1: Whale Fall (intro.html)
+### Part 1: Letter From Deep Sea (intro.html)
 Begin your journey in the abyss with 35,000 interactive particles that morph between mathematical shapes:
-- **Whale Fall Formation** - Particles cascading like marine snow
+- **Whale Fall Formation** - Particles cascading like marine snow, delivering the ocean's letter
 - **Mathematical Beauty** - Seamless morphing between fractal geometry, Möbius strips, Penrose triangles, and Cartesian hearts
 - **Hand Interaction** - Your movements influence the particle flow and trigger shape transformations
 - **Real-time Stats** - Flat-design panel showing FPS, particle count, shape, and interaction status
@@ -20,7 +20,7 @@ Dive into a photorealistic underwater view with:
 
 ## Features
 
-### 🐋 Whale Fall Intro
+### 📜 Letter From Deep Sea Intro
 - **35,000 Particles** - Real-time rendering with glow and trailing effects
 - **5 Mathematical Shapes** - Whale Fall, Fractal, Möbius Strip, Penrose Triangle, Cartesian Heart
 - **Pure Black Interface** - Minimalist design with cyan particle glow
@@ -55,8 +55,8 @@ Dive into a photorealistic underwater view with:
 
 1. Open `intro.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 2. Allow camera access when prompted
-3. **Part 1 - Whale Fall Abyss:**
-   - Watch 35,000 particles cascade in the darkness
+3. **Part 1 - Letter From Deep Sea:**
+   - Watch 35,000 particles cascade in the darkness, forming a message from the abyss
    - Move your hand to interact with the particle system
    - Particles will respond to your movements with force
    - Shapes will automatically morph through 5 mathematical forms
