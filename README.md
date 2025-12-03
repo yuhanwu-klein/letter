@@ -65,24 +65,34 @@ Then open your browser and navigate to: `http://localhost:8000`
 
 ### True 3D Ocean Rendering
 The ocean is a real 3D mesh rendered in WebGL:
-- **Mesh Geometry** - 100x100 vertex grid (10,201 vertices) forming the ocean surface
-- **Vertex Shader** - Displaces each vertex based on wave functions in 3D space
+- **High-Resolution Mesh** - 150x150 vertex grid (22,801 vertices) for ultra-smooth ocean surface
+- **Vertex Shader** - Displaces each vertex based on physically-accurate wave functions in 3D space
 - **3D Camera** - Perspective projection with adjustable FOV looking down at the ocean
 - **Real Depth** - Proper depth testing and z-buffering for authentic 3D appearance
 
-### Advanced Wave System
-Multiple wave frequencies combine for realistic motion:
-- **Layered Waves** - 4 different sine waves with varying frequencies and speeds
-- **Vertex Displacement** - Each vertex moves up/down based on wave calculations
-- **Normal Calculation** - Per-vertex normals computed for proper lighting
-- **Dynamic Animation** - Continuous wave motion creates living, breathing ocean
+### Physically-Based Wave System
+Realistic ocean motion using Gerstner waves:
+- **Gerstner Waves** - 5 layered physically-based waves using trochoid mathematics for authentic ocean motion
+- **Wave Physics** - Wave speed calculated from gravity and wavelength (c = √(g/k))
+- **Circular Motion** - Water particles move in circular paths, creating realistic rolling waves
+- **Horizontal Displacement** - Waves have both vertical and horizontal motion like real ocean waves
+- **Detail Layers** - Additional small sine waves for surface texture and fine detail
+- **Vertex Displacement** - Each vertex moves based on combined wave calculations in 3D space
+- **Smooth Normals** - Per-vertex normals computed from neighboring vertices for proper lighting
+- **Dynamic Animation** - Multiple wave directions and speeds create complex, natural ocean behavior
 
-### Realistic Lighting Model
-- **Directional Light** - Simulated sun from upper right casting light across water
-- **Diffuse Shading** - Wave slopes receive different amounts of light
-- **Specular Highlights** - Bright sun reflections on wave peaks
-- **Fresnel Effect** - Water reflects sky more at shallow viewing angles
-- **Distance Fog** - Far water blends into horizon for atmospheric depth
+### Advanced Lighting and Materials
+Photorealistic water rendering with multiple lighting techniques:
+- **Blinn-Phong Specular** - Enhanced specular highlights with sun-colored reflections
+- **Schlick's Fresnel** - Physically-accurate Fresnel approximation (F = F0 + (1-F0)(1-cosθ)^5)
+- **Subsurface Scattering** - Light penetration simulation for translucent water appearance
+- **Diffuse Shading** - Wave slopes receive different light intensities based on angle
+- **Dynamic Specular Power** - Sharper reflections at grazing angles (32-128 specular power range)
+- **Depth-Based Colors** - Realistic color transition from shallow to deep water
+- **Enhanced Foam** - Foam appears on wave peaks and steep slopes for realism
+- **Atmospheric Scattering** - Distance-based fog blending water into horizon
+- **Sky Reflections** - Water reflects sky color based on Fresnel effect
+- **Color Variation** - Subtle noise adds natural color variation to water surface
 
 ### 3D Interactive Ripples
 Hand-triggered ripples are real geometric deformations:

@@ -14,8 +14,8 @@ class WaterSimulation {
         this.time = 0;
 
         // Ocean mesh parameters
-        this.gridSize = 100; // 100x100 grid for ocean surface
-        this.oceanScale = 50.0; // Size of ocean in world units
+        this.gridSize = 150; // 150x150 grid for smoother ocean surface
+        this.oceanScale = 60.0; // Size of ocean in world units
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -34,9 +34,9 @@ class WaterSimulation {
     }
 
     initMatrices() {
-        // Camera setup
-        this.cameraPos = [0, 5, 8];
-        this.cameraTarget = [0, 0, -10];
+        // Camera setup - positioned for optimal ocean view
+        this.cameraPos = [0, 4, 10];
+        this.cameraTarget = [0, 0, -15];
         this.cameraUp = [0, 1, 0];
 
         this.updateProjectionMatrix();
@@ -117,17 +117,37 @@ class WaterSimulation {
             varying vec3 v_normal;
             varying float v_waveHeight;
 
-            // Wave function
-            float wave(vec2 pos, float time) {
-                float waveHeight = 0.0;
+            // Gerstner Wave function for realistic ocean waves
+            vec3 gerstnerWave(vec2 pos, float time, vec2 direction, float wavelength, float steepness) {
+                float k = 2.0 * 3.14159 / wavelength;
+                float c = sqrt(9.8 / k);
+                vec2 d = normalize(direction);
+                float f = k * (dot(d, pos) - c * time);
+                float a = steepness / k;
 
-                // Multiple wave frequencies for realistic ocean
-                waveHeight += sin(pos.x * 0.5 + time * 0.8) * 0.3;
-                waveHeight += sin(pos.x * 0.3 - pos.y * 0.4 + time * 0.6) * 0.4;
-                waveHeight += sin(pos.y * 0.7 + time * 1.2) * 0.2;
-                waveHeight += sin((pos.x + pos.y) * 0.2 + time * 0.5) * 0.5;
+                return vec3(
+                    d.x * a * cos(f),
+                    a * sin(f),
+                    d.y * a * cos(f)
+                );
+            }
 
-                return waveHeight;
+            // Combined wave function with multiple Gerstner waves
+            vec3 wave(vec2 pos, float time) {
+                vec3 wavePos = vec3(0.0);
+
+                // Layer multiple Gerstner waves for complex realistic motion
+                wavePos += gerstnerWave(pos, time, vec2(1.0, 0.0), 8.0, 0.25);
+                wavePos += gerstnerWave(pos, time, vec2(0.7, 0.7), 6.0, 0.2);
+                wavePos += gerstnerWave(pos, time, vec2(0.0, 1.0), 10.0, 0.15);
+                wavePos += gerstnerWave(pos, time * 0.8, vec2(-0.5, 0.8), 12.0, 0.18);
+                wavePos += gerstnerWave(pos, time * 1.2, vec2(0.6, -0.3), 5.0, 0.12);
+
+                // Add small detail waves
+                wavePos.y += sin(pos.x * 2.0 + time * 1.5) * 0.08;
+                wavePos.y += sin(pos.y * 1.5 - time * 1.2) * 0.06;
+
+                return wavePos;
             }
 
             // Ripple function
@@ -150,29 +170,35 @@ class WaterSimulation {
             void main() {
                 vec3 pos = a_position;
 
-                // Calculate wave height
-                float waveH = wave(pos.xz, u_time);
+                // Calculate Gerstner wave displacement
+                vec3 waveDisplacement = wave(pos.xz, u_time);
+                pos += waveDisplacement;
 
                 // Add ripples from hand movement
+                float rippleHeight = 0.0;
                 for (int i = 0; i < ${this.maxRipples}; i++) {
                     if (i >= u_rippleCount) break;
 
-                    vec2 rippleCenter = u_ripples[i].xy * 50.0 - 25.0; // Map to world coords
+                    vec2 rippleCenter = u_ripples[i].xy * 60.0 - 30.0; // Map to world coords
                     float rippleTime = u_time - u_ripples[i].z;
-                    waveH += ripple(pos.xz, rippleCenter, rippleTime);
+                    rippleHeight += ripple(pos.xz, rippleCenter, rippleTime);
                 }
+                pos.y += rippleHeight;
 
-                pos.y += waveH;
-                v_waveHeight = waveH;
+                v_waveHeight = waveDisplacement.y + rippleHeight;
 
-                // Calculate normal by sampling nearby points
-                float delta = 0.1;
-                float hL = wave(pos.xz + vec2(-delta, 0.0), u_time);
-                float hR = wave(pos.xz + vec2(delta, 0.0), u_time);
-                float hD = wave(pos.xz + vec2(0.0, -delta), u_time);
-                float hU = wave(pos.xz + vec2(0.0, delta), u_time);
+                // Calculate normal by sampling nearby points for smooth lighting
+                float delta = 0.15;
+                vec3 wL = wave(pos.xz + vec2(-delta, 0.0), u_time);
+                vec3 wR = wave(pos.xz + vec2(delta, 0.0), u_time);
+                vec3 wD = wave(pos.xz + vec2(0.0, -delta), u_time);
+                vec3 wU = wave(pos.xz + vec2(0.0, delta), u_time);
 
-                vec3 normal = normalize(vec3(hL - hR, 2.0 * delta, hD - hU));
+                // Create tangent and bitangent for proper normal calculation
+                vec3 tangent = normalize(vec3(2.0 * delta, wR.y - wL.y, 0.0));
+                vec3 bitangent = normalize(vec3(0.0, wU.y - wD.y, 2.0 * delta));
+                vec3 normal = normalize(cross(bitangent, tangent));
+
                 v_normal = normal;
                 v_position = pos;
 
@@ -195,49 +221,84 @@ class WaterSimulation {
             vec3 skyTop = vec3(0.4, 0.6, 0.95);
             vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
 
-            // Water colors
-            vec3 deepWater = vec3(0.0, 0.2, 0.4);
-            vec3 shallowWater = vec3(0.0, 0.5, 0.7);
-            vec3 foam = vec3(0.8, 0.95, 1.0);
+            // Realistic ocean water colors
+            vec3 deepOcean = vec3(0.0, 0.15, 0.35);
+            vec3 shallowOcean = vec3(0.0, 0.4, 0.6);
+            vec3 waterBlue = vec3(0.02, 0.5, 0.7);
+            vec3 foam = vec3(0.85, 0.95, 1.0);
+            vec3 sunColor = vec3(1.0, 0.95, 0.8);
 
             void main() {
                 // Lighting setup
-                vec3 lightDir = normalize(vec3(0.5, 0.8, 0.3));
+                vec3 lightDir = normalize(vec3(0.6, 0.85, 0.4));
                 vec3 viewDir = normalize(u_cameraPos - v_position);
+                vec3 halfDir = normalize(lightDir + viewDir);
 
-                // Diffuse lighting
-                float diffuse = max(dot(v_normal, lightDir), 0.0);
+                // Enhanced Fresnel effect with Schlick's approximation
+                float F0 = 0.02; // Water's base reflectance
+                float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(dot(viewDir, v_normal), 0.0), 5.0);
 
-                // Specular highlights (sun reflection)
-                vec3 reflectDir = reflect(-lightDir, v_normal);
-                float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+                // Diffuse lighting with ambient term
+                float NdotL = max(dot(v_normal, lightDir), 0.0);
+                float diffuse = NdotL * 0.7 + 0.3; // Add ambient
 
-                // Fresnel effect (water reflects more at grazing angles)
-                float fresnel = pow(1.0 - max(dot(viewDir, v_normal), 0.0), 3.0);
+                // Improved specular highlights (Blinn-Phong)
+                float NdotH = max(dot(v_normal, halfDir), 0.0);
+                float specularPower = mix(32.0, 128.0, fresnel); // Sharper at grazing angles
+                float spec = pow(NdotH, specularPower);
 
-                // Base water color depends on depth/wave height
-                vec3 waterColor = mix(deepWater, shallowWater, v_waveHeight * 2.0 + 0.5);
+                // Enhanced specular with sun color
+                vec3 specular = spec * sunColor * 1.2;
 
-                // Add foam on wave peaks
-                if (v_waveHeight > 0.3) {
-                    float foamAmount = smoothstep(0.3, 0.6, v_waveHeight);
-                    waterColor = mix(waterColor, foam, foamAmount);
+                // Depth-based water color
+                float depth = max(-v_position.y, 0.0);
+                vec3 waterColor = mix(shallowOcean, deepOcean, smoothstep(0.0, 2.0, depth));
+
+                // Add variation based on wave height for more realism
+                waterColor = mix(waterColor, waterBlue, v_waveHeight * 1.5 + 0.5);
+
+                // Subsurface scattering approximation
+                float backLight = max(dot(-viewDir, lightDir), 0.0);
+                vec3 subsurface = vec3(0.1, 0.3, 0.4) * pow(backLight, 3.0) * 0.5;
+
+                // Enhanced foam on wave peaks and slopes
+                float foamAmount = 0.0;
+                if (v_waveHeight > 0.2) {
+                    foamAmount = smoothstep(0.2, 0.5, v_waveHeight);
+                    // Add foam on steep slopes too
+                    float steepness = 1.0 - abs(dot(v_normal, vec3(0.0, 1.0, 0.0)));
+                    foamAmount += smoothstep(0.6, 0.9, steepness) * 0.3;
+                    foamAmount = clamp(foamAmount, 0.0, 1.0);
                 }
 
-                // Apply lighting
-                waterColor *= (0.3 + 0.7 * diffuse);
+                // Apply base lighting
+                waterColor *= diffuse;
+
+                // Add subsurface scattering
+                waterColor += subsurface;
+
+                // Mix with foam
+                waterColor = mix(waterColor, foam, foamAmount);
 
                 // Add specular highlights
-                waterColor += vec3(1.0) * spec * 0.8;
+                waterColor += specular;
 
-                // Mix with sky color based on Fresnel
-                vec3 skyColor = mix(skyHorizon, skyTop, 0.5);
-                waterColor = mix(waterColor, skyColor, fresnel * 0.3);
+                // Mix with sky reflection based on Fresnel
+                vec3 skyReflection = mix(skyHorizon, skyTop, 0.3);
+                waterColor = mix(waterColor, skyReflection, fresnel * 0.4);
 
-                // Distance fog
+                // Atmospheric scattering and distance fog
                 float dist = length(v_position.xz);
-                float fog = smoothstep(20.0, 50.0, dist);
-                waterColor = mix(waterColor, skyHorizon, fog);
+                float fog = smoothstep(25.0, 60.0, dist);
+                vec3 fogColor = mix(skyHorizon, vec3(0.6, 0.75, 0.9), 0.5);
+                waterColor = mix(waterColor, fogColor, fog);
+
+                // Add slight color variation for realism
+                float colorNoise = sin(v_position.x * 0.1) * cos(v_position.z * 0.1) * 0.02;
+                waterColor += colorNoise;
+
+                // Ensure realistic brightness
+                waterColor = clamp(waterColor, 0.0, 1.0);
 
                 gl_FragColor = vec4(waterColor, 1.0);
             }
