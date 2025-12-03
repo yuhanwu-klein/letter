@@ -87,18 +87,20 @@ Realistic ocean motion using Gerstner waves:
 - **Dynamic Animation** - Multiple wave directions and speeds create complex, natural ocean behavior
 
 ### Advanced Underwater Lighting and Materials
-Photorealistic underwater rendering with specialized lighting techniques:
+Photorealistic underwater rendering with procedural shader techniques:
 - **Top-Down Lighting** - Sunlight penetrates from above, illuminating water from the surface
+- **Procedural Normal Maps** - Real-time generated normal maps for water surface distortion using smooth noise
+- **Procedural Caustics** - Multi-layered animated caustics patterns created mathematically (no texture files needed)
 - **Blinn-Phong Specular** - Soft specular highlights with sun-colored reflections (16-64 power range)
 - **Schlick's Fresnel** - Physically-accurate transparency based on viewing angle
 - **Dynamic Transparency** - Water opacity varies from 30-70% based on Fresnel and depth
 - **Enhanced Subsurface Scattering** - Light penetration from above creates realistic underwater glow
 - **Diffuse Shading** - Higher ambient term (50%) for underwater atmosphere
-- **Depth-Based Colors** - Realistic color transition from light to deep water blues
+- **Depth-Based Colors** - Realistic color transition from deep (0.0, 0.2, 0.4) to base (0.0, 0.6, 0.7) water colors
 - **Minimal Foam** - Reduced foam visibility from underwater perspective
 - **Underwater Fog** - Distance fades to deep blue-green murk (not sky)
-- **Caustics Effect** - Animated light patterns from surface waves
-- **God Rays** - Volumetric sun rays penetrating water surface
+- **Smooth Noise Functions** - Procedural noise generation for natural water patterns
+- **God Rays** - Volumetric sun rays penetrating water surface in background
 - **Color Variation** - Subtle noise adds natural underwater color variation
 
 ### 3D Interactive Ripples

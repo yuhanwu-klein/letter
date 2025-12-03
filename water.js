@@ -208,7 +208,7 @@ class WaterSimulation {
 
         // Fragment shader with lighting
         const fragmentShaderSource = `
-            precision mediump float;
+            precision highp float;
 
             varying vec3 v_position;
             varying vec3 v_normal;
@@ -217,65 +217,128 @@ class WaterSimulation {
             uniform float u_time;
             uniform vec3 u_cameraPos;
 
-            // Sky colors
+            // Shader properties (matching Unity shader)
+            vec3 baseColor = vec3(0.0, 0.6, 0.7);
+            vec3 depthColor = vec3(0.0, 0.2, 0.4);
+            float normalStrength = 1.0;
+            float causticsStrength = 1.5;
+            vec2 causticsSpeed = vec2(0.1, 0.1);
+            float depthFade = 3.0;
+            float refractionStrength = 0.05;
+
+            // Sky colors for reflections
             vec3 skyTop = vec3(0.4, 0.6, 0.95);
             vec3 skyHorizon = vec3(0.7, 0.85, 1.0);
-
-            // Underwater water colors - more transparent and lighter
-            vec3 deepOcean = vec3(0.05, 0.25, 0.45);
-            vec3 shallowOcean = vec3(0.1, 0.45, 0.65);
-            vec3 waterBlue = vec3(0.08, 0.55, 0.75);
-            vec3 foam = vec3(0.7, 0.9, 1.0);
             vec3 sunColor = vec3(1.0, 0.95, 0.8);
 
+            // Procedural noise function for normal map generation
+            float noise(vec2 p) {
+                return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+            }
+
+            // Smooth noise
+            float smoothNoise(vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+
+                float a = noise(i);
+                float b = noise(i + vec2(1.0, 0.0));
+                float c = noise(i + vec2(0.0, 1.0));
+                float d = noise(i + vec2(1.0, 1.0));
+
+                return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+            }
+
+            // Procedural normal map (water surface distortion)
+            vec3 proceduralNormalMap(vec2 uv, float time) {
+                float scale = 8.0;
+                vec2 p = uv * scale + time * 0.05;
+
+                // Sample noise at offset positions to calculate normal
+                float n = smoothNoise(p);
+                float nx = smoothNoise(p + vec2(0.01, 0.0));
+                float ny = smoothNoise(p + vec2(0.0, 0.01));
+
+                vec3 normal = vec3(
+                    (n - nx) * normalStrength,
+                    1.0,
+                    (n - ny) * normalStrength
+                );
+                return normalize(normal);
+            }
+
+            // Procedural caustics pattern (animated light through water)
+            float proceduralCaustics(vec2 uv, float time) {
+                vec2 causticsUV = uv * 5.0 + time * causticsSpeed;
+
+                // Multiple layers of caustics for complexity
+                float caustic1 = abs(sin(causticsUV.x * 3.0 + sin(causticsUV.y * 2.0 + time * 0.3)));
+                float caustic2 = abs(sin(causticsUV.y * 3.0 + sin(causticsUV.x * 2.0 + time * 0.4)));
+
+                float caustics = caustic1 * caustic2;
+                caustics = pow(caustics, 2.0);
+
+                // Add secondary caustic layer with different frequency
+                vec2 uv2 = uv * 3.0 - time * causticsSpeed * 0.7;
+                float caustic3 = sin(uv2.x * 5.0 + cos(uv2.y * 4.0 + time * 0.5));
+                caustics += pow(max(caustic3, 0.0), 3.0) * 0.5;
+
+                return caustics * causticsStrength;
+            }
+
             void main() {
+                float time = u_time;
+
+                // ✅ Procedural normal map for water surface distortion
+                vec2 surfaceUV = v_position.xz * 0.1;
+                vec3 proceduralNormal = proceduralNormalMap(surfaceUV, time);
+
+                // Blend procedural normal with wave normal
+                vec3 blendedNormal = normalize(v_normal + proceduralNormal * 0.3);
+
                 // Lighting setup - light comes from above (sun penetrating water surface)
                 vec3 lightDir = normalize(vec3(0.2, 1.0, 0.3));
                 vec3 viewDir = normalize(u_cameraPos - v_position);
                 vec3 halfDir = normalize(lightDir + viewDir);
 
                 // Enhanced Fresnel effect with Schlick's approximation
-                float F0 = 0.02; // Water's base reflectance
-                float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(dot(viewDir, v_normal), 0.0), 5.0);
+                float F0 = 0.02;
+                float fresnel = F0 + (1.0 - F0) * pow(1.0 - max(dot(viewDir, blendedNormal), 0.0), 5.0);
+
+                // ✅ Depth-based color gradient (matching Unity shader)
+                float depth = clamp(v_position.y / depthFade, 0.0, 1.0);
+                vec3 waterColor = mix(depthColor, baseColor, depth);
 
                 // Diffuse lighting with more ambient for underwater atmosphere
-                float NdotL = max(dot(v_normal, lightDir), 0.0);
-                float diffuse = NdotL * 0.5 + 0.5; // Higher ambient for underwater
+                float NdotL = max(dot(blendedNormal, lightDir), 0.0);
+                float diffuse = NdotL * 0.5 + 0.5;
+
+                // ✅ Procedural caustics animation
+                vec2 causticsUV = v_position.xz * 0.1;
+                float caustics = proceduralCaustics(causticsUV, time);
+
+                // Apply caustics more strongly where light hits
+                caustics *= NdotL * 0.8 + 0.2;
 
                 // Reduced specular highlights for underwater view
-                float NdotH = max(dot(v_normal, halfDir), 0.0);
-                float specularPower = mix(16.0, 64.0, fresnel); // Softer highlights underwater
+                float NdotH = max(dot(blendedNormal, halfDir), 0.0);
+                float specularPower = mix(16.0, 64.0, fresnel);
                 float spec = pow(NdotH, specularPower);
-
-                // Softer specular with sun color for underwater
                 vec3 specular = spec * sunColor * 0.4;
 
-                // Depth-based water color - inverted for underwater view
-                float depth = max(v_position.y, 0.0);
-                vec3 waterColor = mix(waterBlue, shallowOcean, smoothstep(0.0, 3.0, depth));
-
-                // Add variation based on wave height for more realism
-                waterColor = mix(waterColor, deepOcean, v_waveHeight * 0.8 + 0.3);
-
                 // Enhanced subsurface scattering for underwater - light penetrating from above
-                float scatterLight = max(dot(v_normal, lightDir), 0.0);
+                float scatterLight = max(dot(blendedNormal, lightDir), 0.0);
                 vec3 subsurface = vec3(0.15, 0.4, 0.5) * pow(scatterLight, 2.0) * 0.6;
-
-                // Minimal foam from underwater perspective
-                float foamAmount = 0.0;
-                if (v_waveHeight > 0.4) {
-                    foamAmount = smoothstep(0.4, 0.7, v_waveHeight) * 0.2;
-                    foamAmount = clamp(foamAmount, 0.0, 1.0);
-                }
 
                 // Apply base lighting
                 waterColor *= diffuse;
 
+                // ✅ Add caustics to final color
+                waterColor += vec3(caustics * 0.8, caustics, caustics * 1.2);
+
                 // Add subsurface scattering
                 waterColor += subsurface;
-
-                // Mix with foam
-                waterColor = mix(waterColor, foam, foamAmount);
 
                 // Add specular highlights
                 waterColor += specular;
@@ -287,7 +350,7 @@ class WaterSimulation {
                 // Underwater fog/murk - distance fades to deep blue-green
                 float dist = length(v_position.xz);
                 float fog = smoothstep(15.0, 50.0, dist);
-                vec3 fogColor = vec3(0.02, 0.15, 0.3); // Deep underwater color
+                vec3 fogColor = vec3(0.02, 0.15, 0.3);
                 waterColor = mix(waterColor, fogColor, fog * 0.7);
 
                 // Add slight color variation for realism
@@ -297,8 +360,7 @@ class WaterSimulation {
                 // Ensure realistic brightness
                 waterColor = clamp(waterColor, 0.0, 1.0);
 
-                // Calculate transparency based on viewing angle and depth
-                // More transparent when looking straight at surface, more opaque at grazing angles
+                // ✅ Dynamic transparency (matching Unity shader's 0.8 alpha + Fresnel-based variation)
                 float transparency = mix(0.3, 0.7, fresnel);
 
                 // Adjust transparency based on distance for depth effect
