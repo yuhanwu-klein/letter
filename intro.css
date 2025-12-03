@@ -101,6 +101,42 @@ body {
     margin-bottom: 60px;
 }
 
+/* Cosmic Poetry Section */
+.cosmic-poetry {
+    max-width: 900px;
+    margin: 40px auto 0;
+    padding: 30px;
+    background: rgba(0, 20, 40, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.poetry-line {
+    font-size: 14px;
+    line-height: 2;
+    color: #00ffff;
+    opacity: 0.8;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    animation: poetryGlow 4s ease-in-out infinite;
+}
+
+.poetry-line:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes poetryGlow {
+    0%, 100% {
+        opacity: 0.8;
+        text-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    }
+    50% {
+        opacity: 0.95;
+        text-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+    }
+}
+
 .instruction-text {
     margin-top: 40px;
 }

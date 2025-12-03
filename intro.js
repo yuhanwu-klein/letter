@@ -283,46 +283,78 @@ class WhaleFallParticles {
     updateParticles(time) {
         const positions = this.particles.geometry.attributes.position.array;
         const velocities = this.particles.geometry.attributes.velocity.array;
+        const colors = this.particles.geometry.attributes.color.array;
 
-        // Morph to target shape
+        // Graceful morphing - like cosmic evolution
         if (this.morphProgress < 1) {
-            this.morphProgress += 0.01;
-            const easeProgress = this.easeInOutCubic(this.morphProgress);
+            this.morphProgress += 0.008; // Slower, more elegant morphing
+            const easeProgress = this.easeInOutQuintic(this.morphProgress);
 
             for (let i = 0; i < this.particleCount; i++) {
                 const i3 = i * 3;
-                positions[i3] += (this.targetPositions[i3] - positions[i3]) * 0.05;
-                positions[i3 + 1] += (this.targetPositions[i3 + 1] - positions[i3 + 1]) * 0.05;
-                positions[i3 + 2] += (this.targetPositions[i3 + 2] - positions[i3 + 2]) * 0.05;
+                const smoothFactor = 0.03 * easeProgress; // Smoother interpolation
+                positions[i3] += (this.targetPositions[i3] - positions[i3]) * smoothFactor;
+                positions[i3 + 1] += (this.targetPositions[i3 + 1] - positions[i3 + 1]) * smoothFactor;
+                positions[i3 + 2] += (this.targetPositions[i3 + 2] - positions[i3 + 2]) * smoothFactor;
             }
         }
 
-        // Ocean-like rolling motion
+        // Grand cosmic motion - from quantum uncertainty to galaxy spirals
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
-            const wave = Math.sin(time * 0.001 + i * 0.01) * 0.03;
-            const surge = Math.cos(time * 0.0015 + i * 0.008) * 0.02;
+            const t = i / this.particleCount;
 
-            positions[i3] += wave;
-            positions[i3 + 1] += surge;
-            positions[i3 + 2] += Math.sin(time * 0.002 + i * 0.012) * 0.025;
+            // Spiral galaxy motion - grand and elegant
+            const spiralPhase = time * 0.0003 + t * Math.PI * 4;
+            const spiralRadius = Math.sqrt(positions[i3] * positions[i3] + positions[i3 + 2] * positions[i3 + 2]);
+            const spiralX = Math.cos(spiralPhase) * 0.015;
+            const spiralZ = Math.sin(spiralPhase) * 0.015;
 
-            // Add velocity for trailing effect
-            positions[i3] += velocities[i3];
-            positions[i3 + 1] += velocities[i3 + 1];
-            positions[i3 + 2] += velocities[i3 + 2];
+            // Multi-layered cosmic waves - majestic and flowing
+            const cosmicWave1 = Math.sin(time * 0.0004 + i * 0.005) * 0.08;
+            const cosmicWave2 = Math.cos(time * 0.0006 + i * 0.003) * 0.06;
+            const cosmicWave3 = Math.sin(time * 0.0005 + i * 0.007) * 0.05;
 
-            // Damping
-            velocities[i3] *= 0.98;
-            velocities[i3 + 1] *= 0.98;
-            velocities[i3 + 2] *= 0.98;
+            // Depth-based motion - particles at different depths move differently
+            const depth = Math.abs(positions[i3 + 2]) / 30.0;
+            const depthMotion = Math.sin(time * 0.0008 + depth * Math.PI) * 0.04;
+
+            // Quantum flickering - microscopic uncertainty
+            const quantumFlicker = (Math.random() - 0.5) * 0.003;
+
+            // Apply grand cosmic motion
+            positions[i3] += cosmicWave1 + spiralX + quantumFlicker;
+            positions[i3 + 1] += cosmicWave2 + depthMotion + quantumFlicker * 0.5;
+            positions[i3 + 2] += cosmicWave3 + spiralZ + quantumFlicker;
+
+            // Elegant velocity with stardust trailing
+            positions[i3] += velocities[i3] * 1.2;
+            positions[i3 + 1] += velocities[i3 + 1] * 1.2;
+            positions[i3 + 2] += velocities[i3 + 2] * 1.2;
+
+            // Smooth damping - graceful deceleration
+            velocities[i3] *= 0.985;
+            velocities[i3 + 1] *= 0.985;
+            velocities[i3 + 2] *= 0.985;
+
+            // Stardust twinkling - color intensity variation
+            const twinkle = Math.sin(time * 0.002 + i * 0.1) * 0.15 + 0.85;
+            colors[i3] *= twinkle;
+            colors[i3 + 1] *= twinkle;
+            colors[i3 + 2] *= twinkle;
         }
 
         this.particles.geometry.attributes.position.needsUpdate = true;
+        this.particles.geometry.attributes.color.needsUpdate = true;
 
-        // Rotate entire system for dynamic view
-        this.particles.rotation.y = time * 0.0001;
-        this.particles.rotation.x = Math.sin(time * 0.0002) * 0.2;
+        // Majestic rotation - like the universe itself
+        this.particles.rotation.y = Math.sin(time * 0.00008) * 0.5 + time * 0.00005;
+        this.particles.rotation.x = Math.cos(time * 0.00012) * 0.3;
+        this.particles.rotation.z = Math.sin(time * 0.00006) * 0.15;
+    }
+
+    easeInOutQuintic(t) {
+        return t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
     }
 
     easeInOutCubic(t) {
