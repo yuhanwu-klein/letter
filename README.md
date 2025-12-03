@@ -1,9 +1,35 @@
-# 🌊 Underwater Hand Tracker - Interactive Water Ripples
+# 🐋 Whale Fall - Interactive Ocean Journey
 
-A mesmerizing, minimalist web-based hand tracking application that combines MediaPipe Hands with realistic WebGL underwater simulation. Experience an immersive underwater view looking up at the water surface, where your hand movements create beautiful ripples through the transparent water!
+A mesmerizing two-part interactive experience combining Three.js particle systems with MediaPipe hand tracking. Journey from the abyss through a "whale fall" particle system, then dive into a realistic WebGL underwater simulation.
+
+## 🌟 Experience Overview
+
+### Part 1: Whale Fall (intro.html)
+Begin your journey in the abyss with 35,000 interactive particles that morph between mathematical shapes:
+- **Whale Fall Formation** - Particles cascading like marine snow
+- **Mathematical Beauty** - Seamless morphing between fractal geometry, Möbius strips, Penrose triangles, and Cartesian hearts
+- **Hand Interaction** - Your movements influence the particle flow and trigger shape transformations
+- **Real-time Stats** - Flat-design panel showing FPS, particle count, shape, and interaction status
+- **Smooth Transition** - After interaction, smoothly transitions to the underwater scene
+
+### Part 2: Underwater Scene (index.html)
+Dive into a photorealistic underwater view with:
+- **Immersive Underwater Perspective** - Camera positioned underwater looking up at the surface
+- **Realistic Ocean Simulation** - WebGL rendering with Gerstner waves and refraction
+- **Interactive Ripples** - Hand movements create geometric ripples through transparent water
 
 ## Features
 
+### 🐋 Whale Fall Intro
+- **35,000 Particles** - Real-time rendering with glow and trailing effects
+- **5 Mathematical Shapes** - Whale Fall, Fractal, Möbius Strip, Penrose Triangle, Cartesian Heart
+- **Pure Black Interface** - Minimalist design with cyan particle glow
+- **Hand-Driven Morphing** - Shapes transform based on your interactions
+- **Ocean-like Motion** - Particles roll and surge like underwater currents
+- **Flat Stats Panel** - Real-time FPS and particle system status
+- **Smooth Transitions** - Beautiful fade from abyss to ocean
+
+### 🌊 Underwater Scene
 - **🎨 Pure Minimalist Design** - Immersive underwater experience with no UI clutter
 - **🌊 Underwater Perspective** - Camera positioned underwater looking up at the surface
 - **💎 Smooth Transparent Water** - Ultra-smooth waves with dynamic transparency based on viewing angle and depth
@@ -25,16 +51,30 @@ A mesmerizing, minimalist web-based hand tracking application that combines Medi
 
 ## How to Use
 
-### Option 1: Open Directly in Browser
+### 🌟 Complete Experience (Recommended)
 
-1. Simply open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
+1. Open `intro.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
+2. Allow camera access when prompted
+3. **Part 1 - Whale Fall Abyss:**
+   - Watch 35,000 particles cascade in the darkness
+   - Move your hand to interact with the particle system
+   - Particles will respond to your movements with force
+   - Shapes will automatically morph through 5 mathematical forms
+   - Continue interacting for ~10 seconds
+4. **Part 2 - Underwater Scene:**
+   - Experience a smooth transition from abyss to ocean
+   - Dive into the immersive underwater view
+   - Move your hands to create ripples through transparent water
+   - Watch caustics dance and god rays shimmer above
+
+**Pro tip**: In the intro, wave your hands near particles to push them away. The more you interact, the faster shapes morph. After sufficient interaction, you'll smoothly transition to the underwater scene!
+
+### 🌊 Direct to Underwater (Skip Intro)
+
+1. Simply open `index.html` in a modern web browser
 2. Allow camera access when prompted
 3. Enjoy the immersive underwater view filling your entire screen
 4. Move your hands to create beautiful ripples through the transparent water!
-5. Watch the caustics dance and god rays shimmer as waves move above
-6. The tiny camera in the top-left shows your hand tracking (hover to zoom)
-
-**Pro tip**: Wave your hands, make circles, or create patterns to see mesmerizing ripple effects! The underwater perspective creates a unique, meditative experience as you look up at the water surface from below.
 
 ### Option 2: Using a Local Server
 

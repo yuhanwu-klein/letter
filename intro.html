@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whale Fall - Enter the Abyss</title>
+    <link rel="stylesheet" href="intro.css">
+</head>
+<body>
+    <!-- Three.js Particle Canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+        <div class="stat-item">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fps">60</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">PARTICLES</span>
+            <span class="stat-value" id="particleCount">30000</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">SHAPE</span>
+            <span class="stat-value" id="currentShape">WHALE FALL</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">INTERACTION</span>
+            <span class="stat-value" id="handStatus">WAITING</span>
+        </div>
+    </div>
+
+    <!-- Hidden video for hand tracking -->
+    <video id="handVideo" autoplay playsinline style="display: none;"></video>
+    <canvas id="handCanvas" style="display: none;"></canvas>
+
+    <!-- Instruction overlay -->
+    <div class="instruction-overlay" id="instructionOverlay">
+        <h1 class="whale-title">WHALE FALL</h1>
+        <p class="whale-subtitle">Journey to the Abyss</p>
+        <div class="instruction-text">
+            <p>Move your hand to interact with the particles</p>
+            <p class="small">When ready, the ocean will embrace you...</p>
+        </div>
+    </div>
+
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <!-- Particle System -->
+    <script src="intro.js"></script>
+</body>
+</html>
