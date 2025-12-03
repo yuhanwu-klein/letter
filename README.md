@@ -6,15 +6,17 @@ A mesmerizing, minimalist web-based hand tracking application that combines Medi
 
 - **🎨 Pure Minimalist Design** - Immersive underwater experience with no UI clutter
 - **🌊 Underwater Perspective** - Camera positioned underwater looking up at the surface
-- **💎 Transparent Water** - Dynamic transparency based on viewing angle and depth
-- **🌅 True 3D Ocean Scene** - Fully 3D geometry with depth, perspective, and realistic rendering
-- **🌊 Real 3D Waves** - 150x150 mesh grid with vertex displacement for ultra-smooth wave motion
-- **☀️ Underwater Lighting** - Sunlight penetrating from above with realistic scattering
-- **✨ Caustics Effect** - Animated light patterns dancing on the background
+- **💎 Smooth Transparent Water** - Ultra-smooth waves with dynamic transparency based on viewing angle and depth
+- **🌅 True 3D Ocean Scene** - Fully 3D geometry with depth, perspective, and photorealistic rendering
+- **🌊 Gentle Ocean Waves** - 150x150 mesh grid with smooth Gerstner waves for realistic gentle ocean motion
+- **🎨 Realistic Ocean Texture** - Multi-octave procedural noise creates perfect ocean surface appearance
+- **🌈 Tropical Ocean Colors** - Authentic blue-green water colors from shallow cyan to deep ocean blue
+- **☀️ Soft Underwater Lighting** - Gentle sunlight penetrating from above with smooth ambient illumination
+- **✨ Realistic Caustics** - Organic flowing light patterns mimicking real underwater caustics
 - **🌟 God Rays** - Volumetric sun rays piercing through the water surface
-- **🌈 Fresnel Effect** - Realistic water transparency based on viewing angle
-- **💧 3D Interactive Ripples** - Hand movements create real geometric ripples through transparent water
-- **🌫️ Underwater Fog** - Atmospheric depth with deep blue-green murk in the distance
+- **🌈 Fresnel Effect** - Physically-accurate water transparency based on viewing angle
+- **💧 3D Interactive Ripples** - Hand movements create gentle geometric ripples through smooth transparent water
+- **🌫️ Smooth Underwater Fog** - Gradual atmospheric depth fading to deep ocean blue
 - **👋 Real-time hand tracking** using MediaPipe Hands
 - **🤲 Multi-hand support** - Tracks up to 2 hands simultaneously with ripples from each
 - **📹 Minimal Camera View** - Tiny camera feed in top-left corner with hover zoom effect
@@ -75,33 +77,35 @@ The scene uses a real 3D mesh rendered in WebGL with underwater perspective:
 - **Real Depth** - Proper depth testing and z-buffering for authentic 3D appearance
 - **Alpha Blending** - WebGL transparency with SRC_ALPHA blending for realistic water clarity
 
-### Physically-Based Wave System
-Realistic ocean motion using Gerstner waves:
-- **Gerstner Waves** - 5 layered physically-based waves using trochoid mathematics for authentic ocean motion
+### Smooth Physically-Based Wave System
+Gentle, realistic ocean motion using optimized Gerstner waves:
+- **Smooth Gerstner Waves** - 5 layered waves with reduced steepness (0.08-0.15) for gentle ocean motion
+- **Longer Wavelengths** - 10-20 unit wavelengths create smooth, rolling ocean surface
+- **Slower Animation** - Wave speeds reduced by 40-60% for calmer, more realistic ocean
 - **Wave Physics** - Wave speed calculated from gravity and wavelength (c = √(g/k))
 - **Circular Motion** - Water particles move in circular paths, creating realistic rolling waves
 - **Horizontal Displacement** - Waves have both vertical and horizontal motion like real ocean waves
-- **Detail Layers** - Additional small sine waves for surface texture and fine detail
+- **Subtle Detail Layers** - Very gentle sine waves (0.02-0.04 amplitude) for fine surface texture
 - **Vertex Displacement** - Each vertex moves based on combined wave calculations in 3D space
 - **Smooth Normals** - Per-vertex normals computed from neighboring vertices for proper lighting
-- **Dynamic Animation** - Multiple wave directions and speeds create complex, natural ocean behavior
+- **Multi-directional Flow** - Multiple wave directions create complex, natural ocean behavior
 
 ### Advanced Underwater Lighting and Materials
 Photorealistic underwater rendering with procedural shader techniques:
-- **Top-Down Lighting** - Sunlight penetrates from above, illuminating water from the surface
-- **Procedural Normal Maps** - Real-time generated normal maps for water surface distortion using smooth noise
-- **Procedural Caustics** - Multi-layered animated caustics patterns created mathematically (no texture files needed)
-- **Blinn-Phong Specular** - Soft specular highlights with sun-colored reflections (16-64 power range)
+- **Soft Ambient Lighting** - Gentle sunlight from above with 60% ambient term for smooth underwater atmosphere
+- **Multi-Octave Normal Maps** - 4-octave procedural noise creates realistic ocean surface texture
+- **Realistic Ocean Colors** - Tropical blue-green palette: Shallow (0.1, 0.65, 0.75) → Base (0.02, 0.52, 0.65) → Deep (0.0, 0.12, 0.32)
+- **Multi-Layer Color Blending** - Smooth depth gradients with wave height variation for natural appearance
+- **Organic Caustics Pattern** - Voronoi-like flowing caustics with fine detail for realistic underwater light
+- **Smooth Transparency** - Water opacity varies 35-65% based on Fresnel, depth, and distance
+- **Soft Specular Highlights** - Gentle sun reflections (20-80 power range) for smooth ocean surface
 - **Schlick's Fresnel** - Physically-accurate transparency based on viewing angle
-- **Dynamic Transparency** - Water opacity varies from 30-70% based on Fresnel and depth
-- **Enhanced Subsurface Scattering** - Light penetration from above creates realistic underwater glow
-- **Diffuse Shading** - Higher ambient term (50%) for underwater atmosphere
-- **Depth-Based Colors** - Realistic color transition from deep (0.0, 0.2, 0.4) to base (0.0, 0.6, 0.7) water colors
-- **Minimal Foam** - Reduced foam visibility from underwater perspective
-- **Underwater Fog** - Distance fades to deep blue-green murk (not sky)
-- **Smooth Noise Functions** - Procedural noise generation for natural water patterns
+- **Enhanced Subsurface Scattering** - Tropical ocean light penetration (cyan-tinted) for realistic glow
+- **Smooth Fog Transitions** - Gradual atmospheric depth fading to deep ocean blue (20-55 unit range)
+- **Natural Color Variation** - Multi-octave noise adds subtle, realistic color variation to water
+- **Blended Normal Maps** - 70% wave normals + 30% procedural for smooth realistic surface
 - **God Rays** - Volumetric sun rays penetrating water surface in background
-- **Color Variation** - Subtle noise adds natural underwater color variation
+- **Depth-Modulated Effects** - Caustics and transparency smoothly vary with depth for realism
 
 ### 3D Interactive Ripples
 Hand-triggered ripples are real geometric deformations:
