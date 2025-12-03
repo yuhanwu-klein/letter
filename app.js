@@ -134,10 +134,9 @@ function onResults(results) {
     // Update previous positions
     previousHandPositions = currentHandPositions;
 
-    // Update ripple count and pass hand positions to jellyfish
+    // Update ripple count
     if (waterSim) {
         rippleCountEl.textContent = waterSim.getRippleCount();
-        waterSim.setHandPositions(currentHandPositions);
     }
 
     ctx.restore();
