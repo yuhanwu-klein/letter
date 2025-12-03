@@ -4,7 +4,7 @@ A mesmerizing two-part interactive experience combining Three.js particle system
 
 ## 🌟 Experience Overview
 
-### Part 1: Letter From Deep Sea (intro.html)
+### Part 1: Letter From Deep Sea (index.html)
 Begin your journey in the abyss with 35,000 interactive particles that morph between mathematical shapes:
 - **Whale Fall Formation** - Particles cascading like marine snow, delivering the ocean's letter
 - **Mathematical Beauty** - Seamless morphing between fractal geometry, Möbius strips, Penrose triangles, and Cartesian hearts
@@ -12,7 +12,7 @@ Begin your journey in the abyss with 35,000 interactive particles that morph bet
 - **Real-time Stats** - Flat-design panel showing FPS, particle count, shape, and interaction status
 - **Smooth Transition** - After interaction, smoothly transitions to the underwater scene
 
-### Part 2: Underwater Scene (index.html)
+### Part 2: Underwater Scene (ocean.html)
 Dive into a photorealistic underwater view with:
 - **Immersive Underwater Perspective** - Camera positioned underwater looking up at the surface
 - **Realistic Ocean Simulation** - WebGL rendering with Gerstner waves and refraction
@@ -53,7 +53,7 @@ Dive into a photorealistic underwater view with:
 
 ### 🌟 Complete Experience (Recommended)
 
-1. Open `intro.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
+1. Open `index.html` in a modern web browser (Chrome, Firefox, Edge, Safari)
 2. Allow camera access when prompted
 3. **Part 1 - Letter From Deep Sea:**
    - Watch 35,000 particles cascade in the darkness, forming a message from the abyss
@@ -63,15 +63,15 @@ Dive into a photorealistic underwater view with:
    - Continue interacting for ~10 seconds
 4. **Part 2 - Underwater Scene:**
    - Experience a smooth transition from abyss to ocean
-   - Dive into the immersive underwater view
+   - Automatically transitions to the immersive underwater view
    - Move your hands to create ripples through transparent water
    - Watch caustics dance and god rays shimmer above
 
-**Pro tip**: In the intro, wave your hands near particles to push them away. The more you interact, the faster shapes morph. After sufficient interaction, you'll smoothly transition to the underwater scene!
+**Pro tip**: Wave your hands near particles to push them away. The more you interact, the faster shapes morph. After sufficient interaction, you'll smoothly transition to the underwater scene!
 
 ### 🌊 Direct to Underwater (Skip Intro)
 
-1. Simply open `index.html` in a modern web browser
+1. Simply open `ocean.html` in a modern web browser
 2. Allow camera access when prompted
 3. Enjoy the immersive underwater view filling your entire screen
 4. Move your hands to create beautiful ripples through the transparent water!

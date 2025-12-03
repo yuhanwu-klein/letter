@@ -310,7 +310,7 @@ class WhaleFallParticles {
 
         // Transition to underwater scene
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'ocean.html';
         }, 2000);
     }
 

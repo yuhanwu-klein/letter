@@ -3,46 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ocean Hand Tracker - Interactive Waves</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Letter From Deep Sea</title>
+    <link rel="stylesheet" href="intro.css">
 </head>
 <body>
-    <!-- WebGL Water Background -->
-    <canvas id="waterCanvas"></canvas>
+    <!-- Three.js Particle Canvas -->
+    <canvas id="particleCanvas"></canvas>
 
-    <!-- Camera feed - only visible element -->
-    <div class="video-container">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <!-- Hidden UI container -->
-    <div class="container">
-        <h1>🌊 Ocean Hand Tracker</h1>
-        <div class="info">
-            <p>Move your hands to create ripples in the water</p>
-            <p id="status">Loading camera...</p>
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+        <div class="stat-item">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fps">60</span>
         </div>
-
-        <div class="controls">
-            <button id="toggleBtn">Stop Tracking</button>
-            <div class="stats">
-                <p>Hands detected: <span id="handCount">0</span></p>
-                <p>Ripples: <span id="rippleCount">0</span></p>
-                <p>FPS: <span id="fps">0</span></p>
-            </div>
+        <div class="stat-item">
+            <span class="stat-label">PARTICLES</span>
+            <span class="stat-value" id="particleCount">30000</span>
         </div>
-
-        <div class="landmarks-info">
-            <h3>Hand Landmarks</h3>
-            <div id="landmarksData"></div>
+        <div class="stat-item">
+            <span class="stat-label">SHAPE</span>
+            <span class="stat-value" id="currentShape">WHALE FALL</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">INTERACTION</span>
+            <span class="stat-value" id="handStatus">WAITING</span>
         </div>
     </div>
 
+    <!-- Hidden video for hand tracking -->
+    <video id="handVideo" autoplay playsinline style="display: none;"></video>
+    <canvas id="handCanvas" style="display: none;"></canvas>
+
+    <!-- Instruction overlay -->
+    <div class="instruction-overlay" id="instructionOverlay">
+        <h1 class="whale-title">LETTER FROM DEEP SEA</h1>
+        <p class="whale-subtitle">A Message from the Abyss</p>
+        <div class="instruction-text">
+            <p>Move your hand to interact with the particles</p>
+            <p class="small">When ready, the ocean will embrace you...</p>
+        </div>
+    </div>
+
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- MediaPipe Hands -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="water.js"></script>
-    <script src="app.js"></script>
+
+    <!-- Particle System -->
+    <script src="intro.js"></script>
 </body>
 </html>
