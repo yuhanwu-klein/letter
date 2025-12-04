@@ -10,6 +10,9 @@
     <!-- WebGL Water Background -->
     <canvas id="waterCanvas"></canvas>
 
+    <!-- Three.js Whale Particles Canvas -->
+    <canvas id="whaleCanvas"></canvas>
+
     <!-- Camera feed - only visible element -->
     <div class="video-container">
         <video id="video" autoplay playsinline></video>
@@ -39,10 +42,14 @@
         </div>
     </div>
 
+    <!-- Three.js library for whale particles -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="water.js"></script>
+    <script src="whale.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
